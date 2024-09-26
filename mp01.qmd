@@ -14,7 +14,6 @@ This analysis looks to provide some insights on the financial information behind
 
 ```{r}
 #| echo: false
-#| include: false
 if(!require("tidyverse")) install.packages("tidyverse")
 
 # Let's start with Fare Revenue
@@ -109,8 +108,6 @@ MILES <- readxl::read_xlsx("ridership.xlsx", sheet="VRM") |>
 After loading the data certain column names and row values need to be changed for syntactic reasons and ease of understanding. Firstly, changing the column UZA Name to metro_area will allow for syntactic ease, and a more intuitive label.
 
 ```{r}
-#|echo: true
-#|include: false
 
 USAGE <- inner_join(TRIPS, MILES) |>
     mutate(`NTD ID` = as.integer(`NTD ID`))
@@ -237,7 +234,7 @@ Using all the techniques from the previous questions, along with the pull method
   trips_2019-trips_2020 #decrease in trips
 ```
 
-###  Task 4:
+### Task 4:
 
 #### What month had the highest VRM in 2023
 
@@ -273,23 +270,25 @@ Similarly with this question grouping by year and computing the desired value, u
 
 Predictably, there is a huge drop in 2020 in average trips.
 
-#### What area has the highest/lowest trips, excluding the NYC area? 
+#### What area has the highest/lowest trips, excluding the NYC area?
 
 To answer this we can group by metro area and then summarize for the mean of area. After generating a dataframe with these values we can see Chicago was the highest followed by Las Vegas area, and the lowest was Cheyenne,WY. We can also create a bar graph of the top 10 areas to visualize this clearly. Using the aes (aesthetic) function with fill = metro_area allows for a colorful representation of each chart. This method creates a legend we don't need so we set show.legend = FALSE. The element text function allows for the X label to be angled and positioned correctly for long label names.
 
 ```{r}
- trips_by_area <- USAGE %>% 
+   USAGE <- USAGE %>% rename("metro_area" = "UZA Name")#had to rerun this code
+ 
+   trips_by_area <- USAGE %>% 
         select(year,metro_area,trips) %>% 
         group_by(metro_area) %>% 
         summarise(avg_trips = mean(trips)) %>% 
         arrange(desc(avg_trips)) %>% 
         head(10)
 
-        ggplot(trips_by_area,aes(x = metro_area,y = avg_trips))+
+    ggplot(trips_by_area,aes(x = metro_area,y = avg_trips))+
         geom_bar(stat = 'identity',aes(fill = metro_area),color = "red",show.legend = FALSE)+
-          theme_minimal()+
-          theme(axis.text.x = element_text(angle = 45, hjust = 1,vjust = 1))+
-          labs(title = "Average Trips by City",y= "Unlinked Passenger Trips", x= "Metro Area")
+        theme_minimal()+
+        theme(axis.text.x = element_text(angle = 45, hjust = 1,vjust = 1))+
+        labs(title = "Average Trips by City",y= "Unlinked Passenger Trips", x= "Metro Area")
 ```
 
 ### Task 5: Table Summarization
@@ -415,7 +414,10 @@ Since the Altoona per trip price is so high, some additional analysis is require
 ```
 
 ```{r}
- USAGE_AND_FINANCIALS %>%
+USAGE_AND_FINANCIALS <- USAGE_AND_FINANCIALS %>% 
+  mutate(Agent_Mode = str_c(`Agency Name`,Mode, sep = ", ")) #adding to main dataset
+
+USAGE_AND_FINANCIALS %>%
     filter(Agent_Mode == 'Altoona Metro Transit, Demand Response') %>% 
     select(Agent_Mode,`Total Fares`)
 ```
