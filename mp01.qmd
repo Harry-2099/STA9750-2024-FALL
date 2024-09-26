@@ -14,6 +14,8 @@ This analysis looks to provide some insights on the financial information behind
 
 ```{r}
 #| echo: false
+#| include: false
+
 if(!require("tidyverse")) install.packages("tidyverse")
 
 # Let's start with Fare Revenue
