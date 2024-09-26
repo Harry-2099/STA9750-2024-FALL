@@ -145,7 +145,7 @@ The second section will be "re-coding" the Mode date in the dataframe. Since the
           Mode == "PB"~"Publico",
           Mode == "CC"~"Cable Car",
           TRUE~"Unknown"))
-    Use_table <- DT::datatable(USAGE)
+    Use_table <- DT::datatable(head(USAGE, 5000))
 
 ```
 
