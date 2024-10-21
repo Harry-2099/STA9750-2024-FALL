@@ -1,0 +1,182 @@
+---
+title: "Mini Project#2 - Hollywood Analysis"
+author: "Harry Sohal"
+format: html
+code-fold: true
+code-summary: "Show the code"
+editor: visual
+---
+
+## Introduction
+
+fkd aafnlfnDN
+
+```{r set up ,results = "hide" , echo = 'false'}
+required_packages <- (c('ggplot2','dplyr','tidyr','readr',"stringr","gganimate"))
+lapply(required_packages, library, character.only = TRUE)
+```
+
+```{r cache = TRUE, cache.lazy = FALSE,results = 'hide'}
+#| cache: true
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+get_imdb_file <- function(fname){
+    BASE_URL <- "https://datasets.imdbws.com/"
+    fname_ext <- paste0(fname, ".tsv.gz")
+    if(!file.exists(fname_ext)){
+        FILE_URL <- paste0(BASE_URL, fname_ext)
+        download.file(FILE_URL, 
+                      destfile = fname_ext)
+    }
+    as.data.frame(readr::read_tsv(fname_ext, lazy=FALSE))
+}
+
+## loading the imdb files ###
+NAME_BASICS  <- get_imdb_file("name.basics")
+TITLE_BASICS     <- get_imdb_file("title.basics")
+TITLE_EPISODES   <- get_imdb_file("title.episode")
+TITLE_RATINGS    <- get_imdb_file("title.ratings")
+TITLE_CREW       <- get_imdb_file("title.crew")
+TITLE_PRINCIPALS <- get_imdb_file("title.principals")
+```
+
+#### Data Sub-Sampling: Bringing the Data Down to a Fluid Size
+
+Since the data is very large we will need to reduce the size of the data by filtering out the information that is not useful for analysis. We can do this by removing people with less than 2 "known for" title credits and also removing rare movies with less than 100 ratings.
+
+```{r 2}
+library(ggplot2)
+TITLE_RATINGS |>
+    ggplot(aes(x=numVotes)) + 
+    geom_histogram(bins=30) +
+    xlab("Number of IMDB Ratings") + 
+    ylab("Number of Titles") + 
+    ggtitle("Majority of IMDB Titles Have Less than 100 Ratings") + 
+    theme_bw() + 
+    scale_x_log10(label=scales::comma) + 
+    scale_y_continuous(label=scales::comma)
+```
+
+The graph above is a great representation of the distribution of the our movie data with number of ratings as a descriptor. Showcases how a significant chunk of our date has a number of ratings that is less than 100.
+
+#### Filtering the data
+
+```{r 3}
+library(stringr)
+library(dplyr)
+NAME_BASICS <- NAME_BASICS |> 
+  filter(str_count(knownForTitles, ",") > 1) #filtering the known for titles
+#removing those titles that have less than 100 ratings
+
+TITLE_RATINGS <- TITLE_RATINGS |>
+    filter(numVotes >= 100)
+# now using this to reduced date to filter all the other tables with semi_join 
+TITLE_BASICS <- TITLE_BASICS |>
+    semi_join(TITLE_RATINGS, 
+              join_by(tconst == tconst))
+
+TITLE_CREW <- TITLE_CREW |>
+    semi_join(TITLE_RATINGS, 
+              join_by(tconst == tconst))
+
+TITLE_EPISODES_1 <- TITLE_EPISODES |>
+    semi_join(TITLE_RATINGS, 
+              join_by(tconst == tconst))
+TITLE_EPISODES_2 <- TITLE_EPISODES |>
+    semi_join(TITLE_RATINGS, 
+              join_by(parentTconst == tconst))
+
+TITLE_EPISODES <- bind_rows(TITLE_EPISODES_1,
+                            TITLE_EPISODES_2) |>
+    distinct()
+
+TITLE_PRINCIPALS <- TITLE_PRINCIPALS |>
+    semi_join(TITLE_RATINGS, join_by(tconst == tconst))
+
+rm(TITLE_EPISODES_1)
+rm(TITLE_EPISODES_2)
+```
+
+The code above uses a semi-join to filter the other tables, ensuring that they only retain rows with keys that match those in the initial table without actually joining any tables together.
+
+### Cleaning the data
+
+Most of the time, data will contain many discrepancies. In the case of this data the source used the character \\\\N to representing a missing value within numeric columns. This raises two problems, firstly R does not recognize \\\\N as null, and the columns that should be numeric are in the string format. We can fix both by using as.numeric , which will convert the columns into numeric and also turn unrecognized strings into NAs.
+
+```{r cleaning}
+### Cleaning the data ####
+glimpse(TITLE_BASICS)
+print("________________")
+glimpse(TITLE_EPISODES)
+
+NAME_BASICS <- NAME_BASICS |>
+    mutate(birthYear = as.numeric(birthYear),
+           deathYear = as.numeric(deathYear)) # using the as numeric to force non-numeric into actual N/A instead of the \\N.R provides by the data
+
+TITLE_BASICS <- TITLE_BASICS |>
+    mutate(startYear = as.numeric(startYear),
+           endYear = as.numeric(endYear),
+           isAdult = as.logical(isAdult))
+TITLE_EPISODES <- TITLE_EPISODES |>
+    mutate(seasonNumber = as.numeric(seasonNumber),
+           episodeNumber = as.numeric(episodeNumber))
+```
+
+Our data also contains rows that have multiple values per cell. Separating these into their own rows will allow us to do a more detailed analysis later on. The code below does exactly that.
+
+```{r sep longer}
+NAME_BASICS |> separate_longer_delim(knownForTitles, ",") |> slice_head(n=10)
+```
+
+### TASK 2
+
+#### How many movies are in our data set? How many TV series? How many TV episodes?
+
+To answer this question we can first find out which table provides the answer efficiently. Looking at the tables, TITLE_BASICS seems to contain the most relevant information. By first using the Unique function on the title type column, we can see how best to filter our data to count each category.
+
+```{r}
+  unique(TITLE_BASICS$titleType)
+```
+
+This shows us all the categories in the column and how to properly query them without scrolling through hundreds of rows of data. This shows some interesting information like the video game category which you wouldn't expect to see on a film database
+
+```{r}
+cat("Number of Movies in Data:",  TITLE_BASICS %>% filter(titleType == "movie") %>% summarise(count = n()) %>% pull(count),"\n") 
+cat("Number of TV Series:", TITLE_BASICS %>% filter(titleType == "tvSeries") %>% summarise(count = n()) %>% pull(count),"\n")
+cat("Number of TV episodes:", TITLE_BASICS %>% filter(titleType == "tvEpisode") %>% summarise(count = n()) %>% pull(count))
+```
+
+#### Who is the oldest living person in our data set?
+
+In order to get an accurate answer, and basing it mostly on the data at hand we must use the filter function for living people and getting the minimum birth year that makes sense. This assumes that the death date is in fact accurate and is a death date. Something to note is that at least one group of people is listed in this table, under the name Cherry Bullet with a death date of 2024. This data point is misleading as this is not a single person but a KPOP group, and the death date is the date the band separated.
+
+```{r}
+NAME_BASICS %>% filter(is.na(deathYear),!is.na(birthYear), 2024-birthYear <= 100) %>% arrange(birthYear) %>% head(10)
+
+```
+
+This code finds all the people with missing death dates and also filters for and age max of 100. Any list of data with a calculated age more than this not only starts to become unreasonable but also fails to be true after a quick Google search. Using this method we get Eva Marie Saint.
+
+### There is one TV Episode in this data set with a perfect 10/10 rating and at least 200,000 IMDb ratings. What is it? What series does it belong to?
+
+To answer this we will need to do a couple of join statements.
+
+```{r}
+#| cache: true
+series_name <- TITLE_EPISODES %>% #allows us to get the name of show,not just episode
+  inner_join(TITLE_BASICS, by = c('parentTconst' = 'tconst')) %>% 
+  filter(titleType == "tvSeries") %>% 
+  select(parentTconst,originalTitle) %>% 
+  distinct(parentTconst, .keep_all = TRUE)
+  
+episodes_ranked <- TITLE_EPISODES %>% 
+  left_join(TITLE_BASICS, by = 'tconst') %>% #
+  inner_join(TITLE_RATINGS, by = 'tconst') %>%
+  inner_join(series_name, by = "parentTconst") %>% 
+  filter(numVotes > 200000 & averageRating == 10) %>% 
+  rename(show_name = originalTitle.y)
+episodes_ranked %>% select(primaryTitle,show_name,averageRating)
+```
+
+Using the left join in the first statement we can assure that we get the column we need to do the join with series_name data frame and the other inner_joins allow us to only get the matching data. The answer to this question is no surprise to me being a huge Breaking Bad fan.
