@@ -89,7 +89,7 @@ TITLE_EPISODES <- TITLE_EPISODES |>
 #### Separating the values in the cells by the comma to further clean the data ####
 glimpse(NAME_BASICS)
 #seperating the knownfor col
-NAME_BASICS |> separate_longer_delim(knownForTitles, ",") |> slice_head(n=10)
+NAME_BASICS <- NAME_BASICS |> separate_longer_delim(knownForTitles, ",")
  #### TASK 2 ####
   #How many movies are in our data set? How many TV series? How many TV episodes?
   
@@ -112,12 +112,65 @@ episodes_ranked <- TITLE_EPISODES %>%
   inner_join(series_name, by = "parentTconst") %>% 
   filter(numVotes > 200000 & averageRating == 10) %>% 
   rename(show_name = originalTitle.y)
+#What four projects is the actor Mark Hamill most known for?####
 
-  
-  
+  NAME_BASICS |> 
+  separate_longer_delim(knownForTitles, ",") %>% 
+  filter(primaryName == "Mark Hamill") %>%
+  inner_join(TITLE_BASICS,by = c('knownForTitles' = 'tconst')) %>% 
+  select(primaryName,primaryTitle)
+#What TV series, with more than 12 episodes, has the highest average rating?
+ tv_ranked<- TITLE_EPISODES %>%
+   inner_join(TITLE_RATINGS, by = c('parentTconst'='tconst')) %>%
+   inner_join(TITLE_BASICS, by = c('parentTconst' = 'tconst')) %>% 
+   group_by(parentTconst) %>% 
+   filter(n()>12) %>% 
+   ungroup() %>% 
+   select(primaryTitle,averageRating) %>%
+   distinct(primaryTitle, .keep_all = TRUE) %>% 
+   mutate(rank = dense_rank(desc(averageRating))) %>% 
+   arrange(rank)
+                 
+#Is it true that episodes from later seasons of Happy Days have lower average ratings than the early seasons?
+happy_days<- TITLE_EPISODES %>%
+  inner_join(TITLE_RATINGS, by = c('tconst'='tconst')) %>%
+  inner_join(TITLE_BASICS, by = c('parentTconst' = 'tconst')) %>% 
+  filter(primaryTitle == 'Happy Days') %>% 
+  mutate(season_episode= str_c(seasonNumber,episodeNumber, sep = ",")) %>%
+  select(averageRating,season_episode,seasonNumber,episodeNumber) %>% 
+  arrange(seasonNumber,episodeNumber) %>% 
+  group_by(seasonNumber) %>% 
+  mutate(season_average = mean(averageRating))
 
-                 
-                 
-  
-  
+ggplot(happy_days, aes(x = season_episode, y = averageRating)) +
+  geom_point(size = 2.5,color = "purple") +
+  labs(title = "Average Ratings of Happy Days Episodes",
+       y = "Average Rating", x = "Show Timeline") +
+  theme_bw() +
+  theme(axis.text.x = element_blank())
+
+  ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
+  geom_point(size = 2.5, color = "purple") +
+  geom_smooth(se = FALSE)+
+  labs(title = "Average Ratings of Happy Days by Season",
+       y = "Average Rating", x = "Season Number") +
+  theme_bw()
+#animations
+smooth_vals = predict(loess(season_average~seasonNumber,happy_days))
+
+ ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
+  geom_point(size = 4, color = "purple") +
+  geom_line(aes(y = smooth_vals), colour = "darkblue",linewidth = 2,linetype = 'dotdash') +
+  labs(title = "Average Ratings of Happy Days by Season", y = "Average Rating", x = "Season Number") +
+  theme_bw() +
+  theme(axis.text.x = element_blank()) +
+  transition_reveal(seasonNumber) +
+  ease_aes('linear')
+
+
+
+
+
+
+
  

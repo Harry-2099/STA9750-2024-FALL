@@ -11,12 +11,12 @@ editor: visual
 
 fkd aafnlfnDN
 
-```{r set up ,results = "hide" , echo = 'false'}
+```{r set up, include=FALSE, results="hide"}
 required_packages <- (c('ggplot2','dplyr','tidyr','readr',"stringr","gganimate"))
 lapply(required_packages, library, character.only = TRUE)
 ```
 
-```{r cache = TRUE, cache.lazy = FALSE,results = 'hide'}
+```{r download, cache=TRUE, cache.lazy=FALSE, include='FALSE',echo=FALSE}
 #| cache: true
 library(dplyr)
 library(tidyr)
@@ -39,6 +39,7 @@ TITLE_EPISODES   <- get_imdb_file("title.episode")
 TITLE_RATINGS    <- get_imdb_file("title.ratings")
 TITLE_CREW       <- get_imdb_file("title.crew")
 TITLE_PRINCIPALS <- get_imdb_file("title.principals")
+options(timeout = 600)
 ```
 
 #### Data Sub-Sampling: Bringing the Data Down to a Fluid Size
@@ -179,4 +180,112 @@ episodes_ranked <- TITLE_EPISODES %>%
 episodes_ranked %>% select(primaryTitle,show_name,averageRating)
 ```
 
-Using the left join in the first statement we can assure that we get the column we need to do the join with series_name data frame and the other inner_joins allow us to only get the matching data. The answer to this question is no surprise to me being a huge Breaking Bad fan.
+Using the left join in the first statement we can assure that we get the column we need to do the join with series_name data frame and the other `inner_join`'s allow us to only get the matching data. The answer to this question is no surprise to me being a huge Breaking Bad fan.
+
+### What four projects is the actor Mark Hamill most known for?
+
+```{r mark hamill}
+  
+NAME_BASICS |> 
+  separate_longer_delim(knownForTitles, ",") %>% 
+  filter(primaryName == "Mark Hamill") %>%
+  inner_join(TITLE_BASICS,by = c('knownForTitles' = 'tconst')) %>% 
+  select(primaryName,primaryTitle)
+```
+
+Using an inner join after separating the known for column into unique cells allows us to see exactly what movies Hamill is best known for. We that it is the original Star wars films.
+
+### What TV series, with more than 12 episodes, has the highest average rating?
+
+Answering this question requires some more joining as previously done as well as a statement that counts episodes per show and filters based a count greater than 12. Along with this i've also applied a `dense_rank` function. This ranks the averages, while also accounting for shows that have equal rating. The highest ranked shows under these conditions have a 9.7, and you can see from the dense rank the is a few shows with that rating. The interesting part is that Breaking Bad is ranked in 3rd position. I believe this to be because the greater than 12 episodes condition allows some obscure shows to be introduced. Lets change that number to 60 and see the results.
+
+#### TV Ranking Under Greater than 12 Condition
+
+```{r tv ranking 1}
+tv_ranked<- TITLE_EPISODES %>%
+   inner_join(TITLE_RATINGS, by = c('parentTconst'='tconst')) %>%
+   inner_join(TITLE_BASICS, by = c('parentTconst' = 'tconst')) %>% 
+   group_by(parentTconst) %>% 
+   filter(n()>12) %>% 
+   ungroup() %>% 
+   select(primaryTitle,averageRating) %>%
+   distinct(primaryTitle, .keep_all = TRUE) %>% 
+   mutate(rank = dense_rank(desc(averageRating))) %>% 
+   arrange(rank)
+DT::datatable(tv_ranked %>% head(35),filter = 'top', options = list(
+  pageLength = 5))
+```
+
+#### TV Ranking Under Greater than 60 Condition
+
+```{r tv ranking 2, include=FALSE}
+tv_rank_60<- TITLE_EPISODES %>% 
+    inner_join(TITLE_RATINGS, by = c('parentTconst'='tconst')) %>% 
+  inner_join(TITLE_BASICS, by = c('parentTconst' = 'tconst')) %>% 
+  group_by(parentTconst) %>% 
+  filter(n()>60) %>% 
+  ungroup() %>% 
+  select(primaryTitle,averageRating) %>% 
+  distinct(primaryTitle, .keep_all = TRUE) %>%
+  mutate(rank = dense_rank(desc(averageRating))) %>% 
+  arrange(rank)
+
+DT::datatable(tv_rank_60 %>% head(35),filter = 'top', options = list(
+  pageLength = 5))
+```
+
+Changing the count to 60 did not seem to make a significant difference to 20 rows, and the first page as well as, the main answer are unchanged.
+
+### Is it true that episodes from later seasons of Happy Days have lower average ratings than the early seasons?
+
+The best way to answer this question is to see the relation graphically. After making the data frame below we can use that to create 2 plots, one to display the average for each episode and one to display the season average for a cleaner distinction of relation.
+
+```{r happy days}
+happy_days<- TITLE_EPISODES %>%
+  inner_join(TITLE_RATINGS, by = c('tconst'='tconst')) %>%
+  inner_join(TITLE_BASICS, by = c('parentTconst' = 'tconst')) %>% 
+  filter(primaryTitle == 'Happy Days') %>% 
+  mutate(season_episode= str_c(seasonNumber,episodeNumber, sep = ",")) %>%
+  select(averageRating,season_episode,seasonNumber,episodeNumber) %>% 
+  arrange(seasonNumber,episodeNumber) %>% 
+  group_by(seasonNumber) %>% 
+  mutate(season_average = mean(averageRating))
+
+ggplot(happy_days, aes(x = season_episode, y = averageRating)) +
+  geom_point(size = 2.5,color = "purple") +
+  labs(title = "Average Ratings of Happy Days Episodes",
+       y = "Average Rating", x = "Show Timeline") +
+  theme_bw() +
+  theme(axis.text.x = element_blank())
+
+```
+
+Seems like there might be a downward trend.
+
+```{r, message=FALSE}
+ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
+  geom_point(size = 2.5, color = "purple") +
+  geom_smooth(se = FALSE)+
+  labs(title = "Average Ratings of Happy Days by Season",
+       y = "Average Rating", x = "Season Number") +
+  theme_bw()
+```
+
+The above chart shows more clearly that were was a decline in rating as the show went on it was trending upwards towards the last few seasons. This indicates the show runners might have caught on to declining ratings and made changes to account for it.
+
+#### Animated
+
+```{r animated}
+smooth_vals = predict(loess(season_average~seasonNumber,happy_days))
+ 
+ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
+  geom_point(size = 4, color = "purple") +
+  geom_line(aes(y = smooth_vals), colour = "darkblue",linewidth = 2,linetype = 'dotdash') +
+  labs(title = "Average Ratings of Happy Days by Season", y = "Average Rating", x = "Season Number") +
+  theme_bw() +
+  theme(axis.text.x = element_blank()) +
+  transition_reveal(seasonNumber) +
+  ease_aes('linear')
+```
+
+## Task 3
