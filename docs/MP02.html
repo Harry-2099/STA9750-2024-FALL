@@ -765,8 +765,53 @@ Caused by warning:
 10 8.028851           Simon        9</code></pre>
 </div>
 </div>
+</section>
+<section id="task-4-trends-in-success-over-time" class="level3">
+<h3 class="anchored" data-anchor-id="task-4-trends-in-success-over-time"><strong>Task 4: Trends in Success Over Time</strong></h3>
+<section id="what-was-the-genre-with-the-most-successes-in-each-decade" class="level4">
+<h4 class="anchored" data-anchor-id="what-was-the-genre-with-the-most-successes-in-each-decade">What was the genre with the most “successes” in each decade?</h4>
+<p>Lets start by first filtering to get decades that are more recent by filtering for greater than 1959. Than we can use floor divide to get the decades , followed by using <code>summarise</code> and <code>slice_max</code> to get highest count in each decade.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>recent <span class="ot">&lt;-</span> popular_titles <span class="sc">%&gt;%</span> </span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(startYear <span class="sc">&gt;</span> <span class="dv">1959</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">decade =</span> <span class="fu">floor</span>(<span class="fu">as.numeric</span>(startYear) <span class="sc">/</span> <span class="dv">10</span>) <span class="sc">*</span> <span class="dv">10</span>)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>decade <span class="ot">&lt;-</span>recent <span class="sc">%&gt;%</span> </span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">filter</span>(CLI <span class="sc">&gt;</span> <span class="dv">8</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(genres,decade) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(decade, genres) <span class="sc">%&gt;%</span>  </span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">summarise</span>(<span class="at">num_success =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a> <span class="fu">slice_max</span>(num_success, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a> <span class="fu">arrange</span>(decade)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'decade'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>decade</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 7 × 3
+# Groups:   decade [7]
+  decade genres                  num_success
+   &lt;dbl&gt; &lt;chr&gt;                         &lt;int&gt;
+1   1960 Adventure,Drama,Family          324
+2   1970 Comedy                          378
+3   1980 Crime,Drama,Mystery             744
+4   1990 Crime,Drama,Mystery            1889
+5   2000 Action,Adventure,Sci-Fi        1625
+6   2010 Action,Adventure,Sci-Fi        2375
+7   2020 Action,Adventure,Drama          414</code></pre>
+</div>
+</div>
+<p>Action and adventure in every decade in except the 80s, perhaps the rise of mob crime films.</p>
 
 
+</section>
 </section>
 </section>
 
