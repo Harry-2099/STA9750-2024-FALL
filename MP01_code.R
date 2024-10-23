@@ -295,20 +295,34 @@ USAGE$month <- ymd(USAGE$month)
            arrange(desc(fares_per_trip)) %>% 
            select(`Agency Name`,fares_per_trip,Mode,Agent_Mode) %>% 
            head(10)
+       USAGE_AND_FINANCIALS <- USAGE_AND_FINANCIALS %>% 
+         group_by(`Agency Name`,Mode) %>% 
+         mutate(Agent_Mode = str_c(`Agency Name`,Mode, sep = ", ")) %>% 
+         ungroup()
         #Which transit system (agency and mode) has the lowest expenses per VRM?
          USAGE_AND_FINANCIALS %>% 
+           group_by(Agent_Mode) %>% 
            mutate(expenses_per_vrm = Expenses/annual_vrm) %>% 
            arrange(expenses_per_vrm) %>% 
-           select(`Agency Name`,Mode,expenses_per_vrm) %>% 
+           select(Agent_Mode,expenses_per_vrm) %>% 
            head(5)
+           
          #Which transit system (agency and mode) has the highest total fares per VRM?
       
-         fares_vrm<-USAGE_AND_FINANCIALS %>% 
+         fares_vrm<-USAGE_AND_FINANCIALS %>%
+           group_by(Agent_Mode) %>% 
+           filter(annual_vrm != 0) %>% # to avoid dividing by 0
            mutate(fares_per_vrm = `Total Fares`/annual_vrm) %>%
-           mutate(Agent_Mode = str_c(`Agency Name`,Mode, sep = ", ")) %>% 
            arrange(desc(fares_per_vrm)) %>% 
            select(Agent_Mode,fares_per_vrm) %>% 
            head(10)
+         
+     Altoona <- USAGE %>% 
+       group_by(Mode,Agency) %>% 
+       filter(Agency == 'Altoona Metro Transit'& year == 2022) %>% 
+       filter(Mode== "Demand Response") %>%
+       summarise(total_trips = sum(trips))
+         
 #### Visualizing some of the above ####
          USAGE_AND_FINANCIALS <- USAGE_AND_FINANCIALS %>% 
            group_by(`Agency Name`,Mode) %>% 

@@ -18,7 +18,7 @@ required_packages <- (c('ggplot2','dplyr','tidyr','readr',"stringr","gganimate")
 lapply(required_packages, library, character.only = TRUE)
 ```
 
-```{r download, cache=TRUE, cache.lazy=FALSE, include='FALSE',echo=FALSE}
+```{r download, cache=TRUE, cache.lazy=FALSE, include=FALSE}
 library(dplyr)
 library(tidyr)
 library(tidyverse)
@@ -348,16 +348,17 @@ As you can see this query returns a handful of garbage films like "The Pogmentar
 
 #### 3. Choose a prestige actor or director and confirm that they have many projects with high scores on your success metric.
 
-```{r actors,include=FALSE}
+```{r actors}
 NAMES <- NAME_BASICS |> 
   separate_longer_delim(knownForTitles, ",") %>% 
   select(knownForTitles,primaryName)
 
 popular_titles <-popular_titles %>%
   inner_join(NAMES,by=c('tconst'='knownForTitles'))
-popular_titles %>% 
+
+(popular_titles %>% 
   filter(primaryName =='Robert De Niro') %>% 
-  select(primaryName,CLI,averageRating)
+  select(primaryName,CLI,averageRating,primaryTitle))
 ```
 
 Looks like the CLI works for popular actors as well. You can see that taking the vote bin into account the CLI is actually higher than the average rating.
