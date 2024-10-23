@@ -169,10 +169,10 @@ smooth_vals = predict(loess(season_average~seasonNumber,happy_days))
 
  TITLE_BASICS <- TITLE_BASICS %>% 
   inner_join(TITLE_RATINGS,by = 'tconst')
- ## creating a metric using 
+ ## creating a metric
 mean(TITLE_BASICS$numVotes)
 popular_titles <- TITLE_BASICS %>% 
-  filter(numVotes > 1000)
+  filter(numVotes > 500)
 popular_titles <- popular_titles %>% mutate(vote_bin = ntile(numVotes, n=10))
 
 popular_titles %>% filter(vote_bin == 10) %>% head(10) %>% arrange(numVotes)
@@ -180,5 +180,40 @@ popular_titles %>% filter(vote_bin == 10) %>% head(10) %>% arrange(numVotes)
 popular_titles <- popular_titles %>% 
   mutate(CLI = log10(averageRating)*vote_bin)
 
+NAMES <- NAME_BASICS |> 
+  separate_longer_delim(knownForTitles, ",") %>% 
+  select(knownForTitles,primaryName)
 
+popular_titles <-popular_titles %>%
+  left_join(NAMES,by=c('tconst'='knownForTitles')) %>% 
+  select(-c(10,11,12,13))
+
+popular_titles %>%
+  filter(primaryName == "Robert De Niro") %>% 
+  select(averageRating,CLI,OriginalTitle,primaryName)
+#Task 4: Trends in Success Over Time
+
+recent <- popular_titles %>% 
+  filter(startYear > 1959) %>%
+  mutate(decade = floor(as.numeric(startYear) / 10) * 10) %>% 
+  select(-primaryName.y) %>% 
+  rename(actor = primaryName.x)
+
+decade <-recent %>% 
+ filter(CLI > 8) %>% 
+ group_by(genres,decade) %>% 
+ group_by(decade, genres) %>%  
+ summarise(num_success = n()) %>%
+ slice_max(num_success, n = 1) %>%  
+ arrange(decade)
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
  

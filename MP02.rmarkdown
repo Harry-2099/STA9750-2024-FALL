@@ -9,9 +9,21 @@ code-summary: "Show the code"
 editor: visual
 ---
 
+
+
+
+
+
+
 ## Introduction
 
 fkd aafnlfnDN
+
+
+
+
+
+
 
 ```{r set up, include=FALSE, results="hide"}
 required_packages <- (c('ggplot2','dplyr','tidyr','readr',"stringr","gganimate"))
@@ -43,9 +55,21 @@ TITLE_PRINCIPALS <- get_imdb_file("title.principals")
 options(timeout = 650)
 ```
 
+
+
+
+
+
+
 #### Data Sub-Sampling: Bringing the Data Down to a Fluid Size
 
 Since the data is very large we will need to reduce the size of the data by filtering out the information that is not useful for analysis. We can do this by removing people with less than 2 "known for" title credits and also removing rare movies with less than 100 ratings.
+
+
+
+
+
+
 
 ```{r 2}
 library(ggplot2)
@@ -60,9 +84,21 @@ TITLE_RATINGS |>
     scale_y_continuous(label=scales::comma)
 ```
 
+
+
+
+
+
+
 The graph above is a great representation of the distribution of the our movie data with number of ratings as a descriptor. Showcases how a significant chunk of our date has a number of ratings that is less than 100.
 
 #### Filtering the data
+
+
+
+
+
+
 
 ```{r 3}
 library(stringr)
@@ -100,11 +136,23 @@ rm(TITLE_EPISODES_1)
 rm(TITLE_EPISODES_2)
 ```
 
+
+
+
+
+
+
 The code above uses a semi-join to filter the other tables, ensuring that they only retain rows with keys that match those in the initial table without actually joining any tables together.
 
 ### Cleaning the data
 
 Most of the time, data will contain many discrepancies. In the case of this data the source used the character \\\\N to representing a missing value within numeric columns. This raises two problems, firstly R does not recognize \\\\N as null, and the columns that should be numeric are in the string format. We can fix both by using as.numeric , which will convert the columns into numeric and also turn unrecognized strings into NAs.
+
+
+
+
+
+
 
 ```{r cleaning}
 ### Cleaning the data ####
@@ -125,11 +173,29 @@ TITLE_EPISODES <- TITLE_EPISODES |>
            episodeNumber = as.numeric(episodeNumber))
 ```
 
+
+
+
+
+
+
 Our data also contains rows that have multiple values per cell. Separating these into their own rows will allow us to do a more detailed analysis later on. The code below does exactly that.
+
+
+
+
+
+
 
 ```{r sep longer}
 NAME_BASICS |> separate_longer_delim(knownForTitles, ",") |> slice_head(n=10)
 ```
+
+
+
+
+
+
 
 ### TASK 2
 
@@ -137,11 +203,29 @@ NAME_BASICS |> separate_longer_delim(knownForTitles, ",") |> slice_head(n=10)
 
 To answer this question we can first find out which table provides the answer efficiently. Looking at the tables, TITLE_BASICS seems to contain the most relevant information. By first using the Unique function on the title type column, we can see how best to filter our data to count each category.
 
+
+
+
+
+
+
 ```{r}
   unique(TITLE_BASICS$titleType)
 ```
 
+
+
+
+
+
+
 This shows us all the categories in the column and how to properly query them without scrolling through hundreds of rows of data. This shows some interesting information like the video game category which you wouldn't expect to see on a film database
+
+
+
+
+
+
 
 ```{r}
 cat("Number of Movies in Data:",  TITLE_BASICS %>% filter(titleType == "movie") %>% summarise(count = n()) %>% pull(count),"\n") 
@@ -149,20 +233,44 @@ cat("Number of TV Series:", TITLE_BASICS %>% filter(titleType == "tvSeries") %>%
 cat("Number of TV episodes:", TITLE_BASICS %>% filter(titleType == "tvEpisode") %>% summarise(count = n()) %>% pull(count))
 ```
 
+
+
+
+
+
+
 #### Who is the oldest living person in our data set?
 
 In order to get an accurate answer, and basing it mostly on the data at hand we must use the filter function for living people and getting the minimum birth year that makes sense. This assumes that the death date is in fact accurate and is a death date. Something to note is that at least one group of people is listed in this table, under the name Cherry Bullet with a death date of 2024. This data point is misleading as this is not a single person but a KPOP group, and the death date is the date the band separated.
+
+
+
+
+
+
 
 ```{r}
 NAME_BASICS %>% filter(is.na(deathYear),!is.na(birthYear), 2024-birthYear <= 100) %>% arrange(birthYear) %>% head(10)
 
 ```
 
+
+
+
+
+
+
 This code finds all the people with missing death dates and also filters for and age max of 100. Any list of data with a calculated age more than this not only starts to become unreasonable but also fails to be true after a quick Google search. Using this method we get Eva Marie Saint.
 
 ### There is one TV Episode in this data set with a perfect 10/10 rating and at least 200,000 IMDb ratings. What is it? What series does it belong to?
 
 To answer this we will need to do a couple of join statements.
+
+
+
+
+
+
 
 ```{r}
 #| cache: true
@@ -181,9 +289,21 @@ episodes_ranked <- TITLE_EPISODES %>%
 episodes_ranked %>% select(primaryTitle,show_name,averageRating)
 ```
 
+
+
+
+
+
+
 Using the left join in the first statement we can assure that we get the column we need to do the join with series_name data frame and the other `inner_join`'s allow us to only get the matching data. The answer to this question is no surprise to me being a huge Breaking Bad fan.
 
 ### What four projects is the actor Mark Hamill most known for?
+
+
+
+
+
+
 
 ```{r mark hamill}
   
@@ -194,6 +314,12 @@ NAME_BASICS |>
   select(primaryName,primaryTitle)
 ```
 
+
+
+
+
+
+
 Using an inner join after separating the known for column into unique cells allows us to see exactly what movies Hamill is best known for. We that it is the original Star wars films.
 
 ### What TV series, with more than 12 episodes, has the highest average rating?
@@ -201,6 +327,12 @@ Using an inner join after separating the known for column into unique cells allo
 Answering this question requires some more joining as previously done as well as a statement that counts episodes per show and filters based a count greater than 12. Along with this i've also applied a `dense_rank` function. This ranks the averages, while also accounting for shows that have equal rating. The highest ranked shows under these conditions have a 9.7, and you can see from the dense rank the is a few shows with that rating. The interesting part is that Breaking Bad is ranked in 3rd position. I believe this to be because the greater than 12 episodes condition allows some obscure shows to be introduced. Lets change that number to 60 and see the results.
 
 #### TV Ranking Under Greater than 12 Condition
+
+
+
+
+
+
 
 ```{r tv ranking 1}
 tv_ranked<- TITLE_EPISODES %>%
@@ -217,7 +349,19 @@ DT::datatable(tv_ranked %>% head(35),filter = 'top', options = list(
   pageLength = 5))
 ```
 
+
+
+
+
+
+
 #### TV Ranking Under Greater than 60 Condition
+
+
+
+
+
+
 
 ```{r tv ranking 2, include=FALSE}
 tv_rank_60<- TITLE_EPISODES %>% 
@@ -235,11 +379,23 @@ DT::datatable(tv_rank_60 %>% head(35),filter = 'top', options = list(
   pageLength = 5))
 ```
 
+
+
+
+
+
+
 Changing the count to 60 did not seem to make a significant difference to 20 rows, and the first page as well as, the main answer are unchanged.
 
 ### Is it true that episodes from later seasons of Happy Days have lower average ratings than the early seasons?
 
 The best way to answer this question is to see the relation graphically. After making the data frame below we can use that to create 2 plots, one to display the average for each episode and one to display the season average for a cleaner distinction of relation.
+
+
+
+
+
+
 
 ```{r happy days}
 happy_days<- TITLE_EPISODES %>%
@@ -261,7 +417,19 @@ ggplot(happy_days, aes(x = season_episode, y = averageRating)) +
 
 ```
 
+
+
+
+
+
+
 Seems like there might be a downward trend.
+
+
+
+
+
+
 
 ```{r, message=FALSE}
 ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
@@ -272,7 +440,19 @@ ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
   theme_bw()
 ```
 
+
+
+
+
+
+
 The above chart shows more clearly that were was a decline in rating as the show went on it was trending upwards towards the last few seasons. This indicates the show runners might have caught on to declining ratings and made changes to account for it. Using an animation we can see how drastic the drop from the trend was.
+
+
+
+
+
+
 
 ```{r animated}
 smooth_vals = predict(loess(season_average~seasonNumber,happy_days))
@@ -293,6 +473,12 @@ ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
 
 ```
 
+
+
+
+
+
+
 ## Task 3: Creating a Metric
 
 When deciding a metric its important to consider both the number of votes and the rating together. At first I thought we could simply do a ratio or multiplication of the two number to get a single value to judge the over all reception of a film, however this would cause some scores to be misleading. For example if we were to multiply the rating and number of votes, and say the higher the number the better, this would lead to some movies with large votes and low ratings to still be ranked relatively high. So to solve this problem I took three steps:
@@ -304,6 +490,12 @@ When deciding a metric its important to consider both the number of votes and th
 3.  **Multiply the Log of the scores and the Vote Bin:** This has the effective stated above. A film with a 10 rating and an sufficiently large number of votes will score an overall rating of 10, which I think makes this metric quite interesting. To make this metric sound fancy and grandiose ill call it the *"Cinematic Log Index"* .
 
     #### 1. Choose the top 5-10 movies on your metric and confirm that they were indeed box office successes.
+
+
+
+
+
+
 
     ```{r Task 3 a}
      
@@ -322,7 +514,19 @@ When deciding a metric its important to consider both the number of votes and th
       head(10)
     ```
 
+
+
+
+
+
+
 The results show the Breaking Bad episode being number 1 and a number of extremely popular TV programs following, including Avatar, Succession, Bojack Horseman, Six Feet Under, and Game of Thrones. Lets filter for movies and see the results.
+
+
+
+
+
+
 
 ```{r Task 3a 2}
  popular_titles %>% 
@@ -333,9 +537,21 @@ The results show the Breaking Bad episode being number 1 and a number of extreme
   
 ```
 
+
+
+
+
+
+
 As you can see these are some of the best movies of all time including The Godfather, 12 Angry Men, and the Lord of the Rings and The Dark Knight in the 8th and 9th positions.
 
 #### 2. Choose 3-5 movies with large numbers of IMDb votes that score poorly on your success metric and confirm that they are indeed of low quality.
+
+
+
+
+
+
 
 ```{r task 3 b}
  popular_titles %>% 
@@ -344,9 +560,21 @@ As you can see these are some of the best movies of all time including The Godfa
   head(10)
 ```
 
+
+
+
+
+
+
 As you can see this query returns a handful of garbage films like "The Pogmentary", which has articles calling it the worst TV show or Movie on IMDB of all time.
 
 #### 3. Choose a prestige actor or director and confirm that they have many projects with high scores on your success metric.
+
+
+
+
+
+
 
 ```{r actors}
 NAMES <- NAME_BASICS |> 
@@ -361,11 +589,23 @@ popular_titles <-popular_titles %>%
   select(primaryName,CLI,averageRating,primaryTitle))
 ```
 
+
+
+
+
+
+
 Looks like the CLI works for popular actors as well. You can see that taking the vote bin into account the CLI is actually higher than the average rating.
 
 #### Perform at least one other form of ‘spot check’ validation.
 
 Lets check two popular Ben Affleck movies both known for their "quality".
+
+
+
+
+
+
 
 ```{r glgi}
 popular_titles %>%
@@ -374,11 +614,23 @@ popular_titles %>%
   distinct(primaryTitle,.keep_all = TRUE)
 ```
 
+
+
+
+
+
+
 The CLI score works as expected here.
 
 #### 5. Come up with a numerical threshold for a project to be a ‘success’; that is, determine a value v such that movies above v are all “solid” or better.
 
 Based on the results below, and a confirmation with Google, 8 seems to be a great threshold.
+
+
+
+
+
+
 
 ```{r}
 popular_titles %>%
@@ -390,17 +642,31 @@ popular_titles %>%
 
 ```
 
+
+
+
+
+
+
 ###  **Task 4: Trends in Success Over Time**
 
 #### What was the genre with the most “successes” in each decade?
 
 Lets start by first filtering to get decades that are more recent by filtering for greater than 1959. Than we can use floor divide to get the decades , followed by using `summarise` and `slice_max` to get highest count in each decade.
 
+
+
+
+
+
+
 ```{r, decades}
 
 recent <- popular_titles %>% 
   filter(startYear > 1959) %>%
-  mutate(decade = floor(as.numeric(startYear) / 10) * 10)
+  mutate(decade = floor(as.numeric(startYear) / 10) * 10) %>% 
+  select(-primaryName.y) %>% 
+  rename(actor = primaryName.x)
 
 decade <-recent %>% 
  filter(CLI > 8) %>% 
@@ -413,4 +679,11 @@ decade <-recent %>%
 decade
 ```
 
+
+
+
+
+
+
 Action and adventure in every decade in except the 80s, perhaps the rise of mob crime films.
+
