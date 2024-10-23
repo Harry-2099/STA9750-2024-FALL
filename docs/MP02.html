@@ -170,7 +170,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>fkd aafnlfnDN</p>
+<p>This project examines trends in IMDb movie data to understand factors influencing film success. It focuses on genre popularity and critical ratings over time, uncovering what makes a successful film project. We can then use this analysis to pitch a new project.</p>
 <section id="data-sub-sampling-bringing-the-data-down-to-a-fluid-size" class="level4">
 <h4 class="anchored" data-anchor-id="data-sub-sampling-bringing-the-data-down-to-a-fluid-size">Data Sub-Sampling: Bringing the Data Down to a Fluid Size</h4>
 <p>Since the data is very large we will need to reduce the size of the data by filtering out the information that is not useful for analysis. We can do this by removing people with less than 2 “known for” title credits and also removing rare movies with less than 100 ratings.</p>
@@ -703,11 +703,13 @@ Caused by warning:
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(knownForTitles,primaryName)</span>
 <span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>popular_titles <span class="ot">&lt;-</span>popular_titles <span class="sc">%&gt;%</span></span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(NAMES,<span class="at">by=</span><span class="fu">c</span>(<span class="st">'tconst'</span><span class="ot">=</span><span class="st">'knownForTitles'</span>))</span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>(popular_titles <span class="sc">%&gt;%</span> </span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(primaryName <span class="sc">==</span><span class="st">'Robert De Niro'</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(primaryName,CLI,averageRating,primaryTitle))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(NAMES,<span class="at">by=</span><span class="fu">c</span>(<span class="st">'tconst'</span><span class="ot">=</span><span class="st">'knownForTitles'</span>)) </span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="co">#popular_titles = select(popular_titles,-10,-11,-12,-13)</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>(popular_titles <span class="sc">%&gt;%</span> </span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(primaryName <span class="sc">==</span><span class="st">'Robert De Niro'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(primaryName,CLI,averageRating,primaryTitle))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>     primaryName      CLI averageRating    primaryTitle
@@ -780,11 +782,12 @@ Caused by warning:
 <span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>decade <span class="ot">&lt;-</span>recent <span class="sc">%&gt;%</span> </span>
 <span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">filter</span>(CLI <span class="sc">&gt;</span> <span class="dv">8</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(genres,decade) <span class="sc">%&gt;%</span> </span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(decade, genres) <span class="sc">%&gt;%</span>  </span>
-<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">summarise</span>(<span class="at">num_success =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a> <span class="fu">slice_max</span>(num_success, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span>  </span>
-<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a> <span class="fu">arrange</span>(decade)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(genres,decade) <span class="sc">%&gt;%</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(decade, genres) <span class="sc">%&gt;%</span>  </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a> <span class="fu">summarise</span>(<span class="at">num_success =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a> <span class="fu">slice_max</span>(num_success, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a> <span class="fu">arrange</span>(decade)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'decade'. You can override using the
@@ -797,21 +800,178 @@ Caused by warning:
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 7 × 3
 # Groups:   decade [7]
-  decade genres                  num_success
-   &lt;dbl&gt; &lt;chr&gt;                         &lt;int&gt;
-1   1960 Adventure,Drama,Family          324
-2   1970 Comedy                          378
-3   1980 Crime,Drama,Mystery             744
-4   1990 Crime,Drama,Mystery            1889
-5   2000 Action,Adventure,Sci-Fi        1625
-6   2010 Action,Adventure,Sci-Fi        2375
-7   2020 Action,Adventure,Drama          414</code></pre>
+  decade genres num_success
+   &lt;dbl&gt; &lt;chr&gt;        &lt;int&gt;
+1   1960 Drama         2441
+2   1970 Drama         3724
+3   1980 Drama         8096
+4   1990 Drama        20001
+5   2000 Drama        20697
+6   2010 Drama        14844
+7   2020 Drama         3121</code></pre>
 </div>
 </div>
-<p>Action and adventure in every decade in except the 80s, perhaps the rise of mob crime films.</p>
-
-
+<p>As you can see the action and drama are both very popular.</p>
 </section>
+<section id="what-genre-consistently-has-the-most-successes-what-genre-used-to-reliably-produced-successes-and-has-fallen-out-of-favor" class="level4">
+<h4 class="anchored" data-anchor-id="what-genre-consistently-has-the-most-successes-what-genre-used-to-reliably-produced-successes-and-has-fallen-out-of-favor">What genre consistently has the most “successes”? What genre used to reliably produced “successes” and has fallen out of favor?</h4>
+<p>From the results above you can see that the action and adventure genre has always had a large number of succeses and the drama genre had a number of successes early on and none in recent decades.</p>
+</section>
+<section id="what-genre-has-produced-the-most-successes-since-2010-does-it-have-the-highest-success-rate-or-does-it-only-have-a-large-number-of-successes-because-there-are-many-productions-in-that-genre" class="level4">
+<h4 class="anchored" data-anchor-id="what-genre-has-produced-the-most-successes-since-2010-does-it-have-the-highest-success-rate-or-does-it-only-have-a-large-number-of-successes-because-there-are-many-productions-in-that-genre">What genre has produced the most “successes” since 2010? Does it have the highest success <em>rate</em> or does it only have a large number of successes because there are many productions in that genre?</h4>
+<p>We can see from above that the action genre has the highest number in 2010, but does it have a good success rate?</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>recent <span class="sc">%&gt;%</span> </span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(decade<span class="sc">==</span> <span class="dv">2010</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(genres) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_n_genre =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="co">#total rows per genre</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(CLI <span class="sc">&gt;</span> <span class="dv">8</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">success_rate =</span> <span class="fu">n</span>() <span class="sc">/</span> total_n_genre) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(genres,decade,success_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 65,752 × 3
+# Groups:   genres [26]
+   genres    decade success_rate
+   &lt;chr&gt;      &lt;dbl&gt;        &lt;dbl&gt;
+ 1 Adventure   2010        0.623
+ 2 Comedy      2010        0.470
+ 3 Drama       2010        0.578
+ 4 Adventure   2010        0.623
+ 5 Comedy      2010        0.470
+ 6 Drama       2010        0.578
+ 7 Adventure   2010        0.623
+ 8 Comedy      2010        0.470
+ 9 Drama       2010        0.578
+10 Adventure   2010        0.623
+# ℹ 65,742 more rows</code></pre>
+</div>
+</div>
+<p>Based on success rate the Adventure genre is actually the best for the 2010 decade.</p>
+</section>
+<section id="what-genre-has-become-more-popular-in-recent-years" class="level4">
+<h4 class="anchored" data-anchor-id="what-genre-has-become-more-popular-in-recent-years">What genre has become more popular in recent years?</h4>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>rate_2020 <span class="ot">&lt;-</span>recent <span class="sc">%&gt;%</span> </span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(decade<span class="sc">==</span> <span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(genres) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_n_genre =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="co">#total rows per genre</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(CLI <span class="sc">&gt;</span> <span class="dv">8</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">success_rate =</span> <span class="fu">n</span>() <span class="sc">/</span> total_n_genre) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(genres,decade,success_rate)</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(rate_2020,<span class="fu">aes</span>(<span class="at">x =</span> genres,<span class="at">y=</span>success_rate,<span class="at">fill =</span> genres))<span class="sc">+</span> </span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">'identity'</span>)<span class="sc">+</span></span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>,<span class="at">hjust=</span> <span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span><span class="st">"none"</span>)<span class="sc">+</span></span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"2020 Success Rate on Genres"</span>, <span class="at">y =</span><span class="st">'Rate'</span>,<span class="at">x=</span> <span class="st">"Genre"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MP02_files/figure-html/2020 suc rate-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="task-5-key-personnel" class="level3">
+<h3 class="anchored" data-anchor-id="task-5-key-personnel">Task 5: Key <strong>Personnel</strong></h3>
+<p>Based on the on some previous analysis I have already decided to pick one of the actors as Robert De Niro. The other actor will need to be found through some more analysis.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>recent <span class="ot">&lt;-</span> popular_titles <span class="sc">%&gt;%</span> </span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(startYear <span class="sc">&gt;</span> <span class="dv">1959</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">decade =</span> <span class="fu">floor</span>(<span class="fu">as.numeric</span>(startYear) <span class="sc">/</span> <span class="dv">10</span>) <span class="sc">*</span> <span class="dv">10</span>)</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>recent <span class="sc">%&gt;%</span> </span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(startYear <span class="sc">&gt;</span> <span class="dv">2022</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(primaryName,genres,CLI) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(CLI)) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>          primaryName                     genres      CLI
+1     Chad Birmingham        Crime,Drama,Fantasy 9.444827
+2       François Chau        Crime,Drama,Fantasy 9.444827
+3        Chase Conley Action,Adventure,Animation 9.444827
+4  Vidhu Vinod Chopra            Biography,Drama 9.444827
+5      Vikram Chandra            Biography,Drama 9.444827
+6      Myron Nettinga Action,Adventure,Animation 9.395193
+7     Haven Alexander Action,Adventure,Animation 9.395193
+8       Andrew Moreau     Action,Adventure,Drama 9.395193
+9     Scott Augustine     Action,Adventure,Drama 9.395193
+10       Pedro Pascal     Action,Adventure,Drama 9.395193</code></pre>
+</div>
+</div>
+<p>Here I see a familiar name, Pedro Pascal. With this new information I will choose Pedro Pascal, Robert De Niro and pair them with original director Martin Scorsese. The choice of these people is based on their household name status, and the metric I’ve designed where they all score very well, &gt; 9.</p>
+</section>
+<section id="task-6-finding-a-classic-movie-to-remake" class="level3">
+<h3 class="anchored" data-anchor-id="task-6-finding-a-classic-movie-to-remake"><strong>Task 6: Finding a Classic Movie to Remake</strong></h3>
+<p>Based on the above results and the some previous analysis I will choose to remake the movie Raging Bull including Robert De Niro as Fan service, staring Pedro Pascal in the main role. This movie and key people have large number of reviews, great ratings, and great CLI’s.</p>
+</section>
+<section id="task-7-pitch" class="level3">
+<h3 class="anchored" data-anchor-id="task-7-pitch">Task 7: Pitch</h3>
+<p>In the new age of cinema we see that often the box office is dominated by massively expensive yet emotionally and artistically deprived pieces of work that have started to bore much of the audience. With every movie trying to become the next action filled, 8 part marvel universe movie we have the opportunity to take a step back and release a film that satisfies critiques, fans of film, and introduce a classic to the younger generation. I purpose we take the class film Raging Bull and remake it, staring Pedro Pascal and of course De Niro. Lets get into some of benefits doing this remake.</p>
+<p><strong>Success Metric:</strong></p>
+<p>Based on success metric that takes into account both number of ratings and the Average IMDB rating the, original movie as well as the people involved all have very high scores. This metric is called the <em>CLI.</em> lets take a look at the peoples scores.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>recent <span class="sc">%&gt;%</span> </span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(primaryName,CLI) <span class="sc">%&gt;%</span> </span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(primaryName <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'Robert De Niro'</span>, <span class="st">'Pedro Pascal'</span>,<span class="st">"Martin Scorsese"</span>) <span class="sc">&amp;</span> CLI <span class="sc">&gt;</span> <span class="dv">9</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(primaryName,<span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(CLI))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>      primaryName      CLI
+1    Pedro Pascal 9.637878
+2  Robert De Niro 9.138139
+3 Martin Scorsese 9.138139</code></pre>
+</div>
+</div>
+<p>We can see that they have all been part of productions that both very popular and very good.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>dramas <span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span> </span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(genres <span class="sc">==</span> <span class="st">"Drama"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(decade) <span class="sc">%&gt;%</span> </span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_CLI =</span><span class="fu">mean</span>(CLI)) <span class="sc">%&gt;%</span> </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(avg_CLI,genres) <span class="sc">%&gt;%</span> </span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(decade,<span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding missing grouping variables: `decade`</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dramas,<span class="fu">aes</span>(<span class="at">x =</span> decade, <span class="at">y=</span> avg_CLI))<span class="sc">+</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.5</span>, <span class="at">color =</span> <span class="st">"blue"</span>)<span class="sc">+</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Time"</span>, <span class="at">y=</span><span class="st">"Cinematic Log Index Average"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MP02_files/figure-html/pitch graph-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
 </section>
 </section>
 

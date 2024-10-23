@@ -11,7 +11,7 @@ editor: visual
 
 ## Introduction
 
-fkd aafnlfnDN
+This project examines trends in IMDb movie data to understand factors influencing film success. It focuses on genre popularity and critical ratings over time, uncovering what makes a successful film project. We can then use this analysis to pitch a new project.
 
 ```{r set up, include=FALSE, results="hide"}
 required_packages <- (c('ggplot2','dplyr','tidyr','readr',"stringr","gganimate"))
@@ -354,7 +354,9 @@ NAMES <- NAME_BASICS |>
   select(knownForTitles,primaryName)
 
 popular_titles <-popular_titles %>%
-  inner_join(NAMES,by=c('tconst'='knownForTitles'))
+  inner_join(NAMES,by=c('tconst'='knownForTitles')) 
+  
+#popular_titles = select(popular_titles,-10,-11,-12,-13)
 
 (popular_titles %>% 
   filter(primaryName =='Robert De Niro') %>% 
@@ -404,7 +406,8 @@ recent <- popular_titles %>%
 
 decade <-recent %>% 
  filter(CLI > 8) %>% 
- group_by(genres,decade) %>% 
+ group_by(genres,decade) %>%
+ separate_longer_delim(genres, ",") %>% 
  group_by(decade, genres) %>%  
  summarise(num_success = n()) %>%
  slice_max(num_success, n = 1) %>%  
@@ -413,4 +416,103 @@ decade <-recent %>%
 decade
 ```
 
-Action and adventure in every decade in except the 80s, perhaps the rise of mob crime films.
+As you can see the action and drama are both very popular.
+
+#### What genre consistently has the most “successes”? What genre used to reliably produced “successes” and has fallen out of favor?
+
+From the results above you can see that the action and adventure genre has always had a large number of succeses and the drama genre had a number of successes early on and none in recent decades.
+
+#### What genre has produced the most “successes” since 2010? Does it have the highest success *rate* or does it only have a large number of successes because there are many productions in that genre?
+
+We can see from above that the action genre has the highest number in 2010, but does it have a good success rate?
+
+```{r suc rate}
+recent %>% 
+  filter(decade== 2010) %>% 
+  separate_longer_delim(genres, ",") %>% 
+  group_by(genres) %>% 
+  mutate(total_n_genre = n()) %>% #total rows per genre
+  filter(CLI > 8) %>%
+  mutate(success_rate = n() / total_n_genre) %>% 
+  select(genres,decade,success_rate)
+```
+
+Based on success rate the Adventure genre is actually the best for the 2010 decade.
+
+#### What genre has become more popular in recent years?
+
+```{r 2020 suc rate}
+rate_2020 <-recent %>% 
+  filter(decade== 2020) %>% 
+  separate_longer_delim(genres, ",") %>% 
+  group_by(genres) %>% 
+  mutate(total_n_genre = n()) %>% #total rows per genre
+  filter(CLI > 8) %>%
+  mutate(success_rate = n() / total_n_genre) %>% 
+  select(genres,decade,success_rate)
+
+ggplot(rate_2020,aes(x = genres,y=success_rate,fill = genres))+ 
+  geom_bar(stat = 'identity')+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45,hjust= 1))+
+  theme(legend.position ="none")+
+  labs(title = "2020 Success Rate on Genres", y ='Rate',x= "Genre")
+  
+```
+
+### Task 5: Key **Personnel**
+
+Based on the on some previous analysis I have already decided to pick one of the actors as Robert De Niro. The other actor will need to be found through some more analysis.
+
+```{r new star}
+recent <- popular_titles %>% 
+  filter(startYear > 1959) %>%
+  mutate(decade = floor(as.numeric(startYear) / 10) * 10)
+
+recent %>% 
+  filter(startYear > 2022) %>% 
+  select(primaryName,genres,CLI) %>% 
+  arrange(desc(CLI)) %>% 
+  head(10)
+```
+
+Here I see a familiar name, Pedro Pascal. With this new information I will choose Pedro Pascal, Robert De Niro and pair them with original director Martin Scorsese. The choice of these people is based on their household name status, and the metric I've designed where they all score very well, \> 9.
+
+### **Task 6: Finding a Classic Movie to Remake**
+
+Based on the above results and the some previous analysis I will choose to remake the movie Raging Bull including Robert De Niro as Fan service, staring Pedro Pascal in the main role. This movie and key people have large number of reviews, great ratings, and great CLI's.
+
+### Task 7: Pitch
+
+In the new age of cinema we see that often the box office is dominated by massively expensive yet emotionally and artistically deprived pieces of work that have started to bore much of the audience. With every movie trying to become the next action filled, 8 part marvel universe movie we have the opportunity to take a step back and release a film that satisfies critiques, fans of film, and introduce a classic to the younger generation. I purpose we take the class film Raging Bull and remake it, staring Pedro Pascal and of course De Niro. Lets get into some of benefits doing this remake.
+
+**Success Metric:**
+
+Based on success metric that takes into account both number of ratings and the Average IMDB rating the, original movie as well as the people involved all have very high scores. This metric is called the *CLI.* lets take a look at the peoples scores.
+
+```{r}
+recent %>% 
+  select(primaryName,CLI) %>% 
+  filter(primaryName %in% c('Robert De Niro', 'Pedro Pascal',"Martin Scorsese") & CLI > 9) %>% 
+  distinct(primaryName,.keep_all = TRUE) %>% 
+  arrange(desc(CLI))
+
+```
+
+We can see that they have all been part of productions that both very popular and very good.
+
+```{r pitch graph}
+dramas <- recent %>% 
+  separate_longer_delim(genres, ",") %>% 
+  filter(genres == "Drama") %>% 
+  group_by(decade) %>% 
+  mutate(avg_CLI =mean(CLI)) %>% 
+  select(avg_CLI,genres) %>% 
+  distinct(decade,.keep_all = TRUE)
+
+ggplot(dramas,aes(x = decade, y= avg_CLI))+
+  geom_line(linewidth = 1.5, color = "blue")+
+  theme_bw()+
+  labs( x = "Time", y="Cinematic Log Index Average")
+  
+```
