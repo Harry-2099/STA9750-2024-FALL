@@ -2,6 +2,8 @@
 title: "Mini Project#2 - Hollywood Analysis"
 author: "Harry Sohal"
 format: html
+execute: 
+  cache: true
 code-fold: true
 code-summary: "Show the code"
 editor: visual
@@ -17,7 +19,6 @@ lapply(required_packages, library, character.only = TRUE)
 ```
 
 ```{r download, cache=TRUE, cache.lazy=FALSE, include='FALSE',echo=FALSE}
-#| cache: true
 library(dplyr)
 library(tidyr)
 library(tidyverse)
@@ -39,7 +40,7 @@ TITLE_EPISODES   <- get_imdb_file("title.episode")
 TITLE_RATINGS    <- get_imdb_file("title.ratings")
 TITLE_CREW       <- get_imdb_file("title.crew")
 TITLE_PRINCIPALS <- get_imdb_file("title.principals")
-options(timeout = 600)
+options(timeout = 650)
 ```
 
 #### Data Sub-Sampling: Bringing the Data Down to a Fluid Size
@@ -50,7 +51,7 @@ Since the data is very large we will need to reduce the size of the data by filt
 library(ggplot2)
 TITLE_RATINGS |>
     ggplot(aes(x=numVotes)) + 
-    geom_histogram(bins=30) +
+    geom_histogram(bins=30,fill='blue') +
     xlab("Number of IMDB Ratings") + 
     ylab("Number of Titles") + 
     ggtitle("Majority of IMDB Titles Have Less than 100 Ratings") + 
@@ -267,25 +268,123 @@ ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
   geom_point(size = 2.5, color = "purple") +
   geom_smooth(se = FALSE)+
   labs(title = "Average Ratings of Happy Days by Season",
-       y = "Average Rating", x = "Season Number") +
+       y = "Seasonal Average Rating", x = "Season Number") +
   theme_bw()
 ```
 
-The above chart shows more clearly that were was a decline in rating as the show went on it was trending upwards towards the last few seasons. This indicates the show runners might have caught on to declining ratings and made changes to account for it.
-
-#### Animated
+The above chart shows more clearly that were was a decline in rating as the show went on it was trending upwards towards the last few seasons. This indicates the show runners might have caught on to declining ratings and made changes to account for it. Using an animation we can see how drastic the drop from the trend was.
 
 ```{r animated}
 smooth_vals = predict(loess(season_average~seasonNumber,happy_days))
  
 ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
   geom_point(size = 4, color = "purple") +
-  geom_line(aes(y = smooth_vals), colour = "darkblue",linewidth = 2,linetype = 'dotdash') +
-  labs(title = "Average Ratings of Happy Days by Season", y = "Average Rating", x = "Season Number") +
+  geom_line(aes(y = smooth_vals, color = "Predicted Trend"), linewidth = 2, linetype = 'dotdash') +
+  labs(title = "Average Ratings of Happy Days by Season", 
+       y = "Seasonal Average Rating", 
+       x = "Season Number", 
+       color = "Legend") +
   theme_bw() +
-  theme(axis.text.x = element_blank()) +
   transition_reveal(seasonNumber) +
-  ease_aes('linear')
+  ease_aes('linear')+
+   theme(legend.position = "bottom")
+  
+
+
 ```
 
-## Task 3
+## Task 3: Creating a Metric
+
+When deciding a metric its important to consider both the number of votes and the rating together. At first I thought we could simply do a ratio or multiplication of the two number to get a single value to judge the over all reception of a film, however this would cause some scores to be misleading. For example if we were to multiply the rating and number of votes, and say the higher the number the better, this would lead to some movies with large votes and low ratings to still be ranked relatively high. So to solve this problem I took three steps:
+
+1.  **Binning the Votes**: The votes have a large number of variance between them, and in order to effectively use this data in a metric it would be best to bin them. I chose 10 bins, effectively making it so that the number of votes will be confined into a range 1-10, with each number having a range of votes similar to a histogram. To do this we use: `mutate(vote_bin = ntile(numVotes, n=10))`
+
+2.  **Taking the Log of the Scores:** At first,I was messing with the idea of using a log to account for the issues previously stated but decided binning the data was best course of action. However, I found that taking the log of these numbers made the score between 0 and 1 thus making it so when we multiply it with the vote bin, a perfect rating had an overall score that was equal to the bin number. So a movie with a 10 average rating and a was in the highest bin(10) had a combined metric equal to 10.
+
+3.  **Multiply the Log of the scores and the Vote Bin:** This has the effective stated above. A film with a 10 rating and an sufficiently large number of votes will score an overall rating of 10, which I think makes this metric quite interesting. To make this metric sound fancy and grandiose ill call it the *"Cinematic Log Index"* .
+
+    #### 1. Choose the top 5-10 movies on your metric and confirm that they were indeed box office successes.
+
+    ```{r Task 3 a}
+     
+    TITLE_BASICS <- TITLE_BASICS %>% 
+      inner_join(TITLE_RATINGS,by = 'tconst')
+     ## creating a metric
+    popular_titles <- TITLE_BASICS %>% 
+      filter(numVotes > 500)
+    popular_titles <- popular_titles %>% mutate(vote_bin = ntile(numVotes, n=10))
+    popular_titles <- popular_titles %>% 
+      mutate(CLI = log10(averageRating)*vote_bin)
+
+    popular_titles %>% 
+      select(primaryTitle,CLI) %>% 
+      arrange(desc(CLI)) %>% 
+      head(10)
+    ```
+
+The results show the Breaking Bad episode being number 1 and a number of extremely popular TV programs following, including Avatar, Succession, Bojack Horseman, Six Feet Under, and Game of Thrones. Lets filter for movies and see the results.
+
+```{r Task 3a 2}
+ popular_titles %>% 
+   filter(titleType == "movie") %>% 
+   select(primaryTitle,CLI) %>% 
+  arrange(desc(CLI)) %>% 
+  head(10)
+  
+```
+
+As you can see these are some of the best movies of all time including The Godfather, 12 Angry Men, and the Lord of the Rings and The Dark Knight in the 8th and 9th positions.
+
+#### 2. Choose 3-5 movies with large numbers of IMDb votes that score poorly on your success metric and confirm that they are indeed of low quality.
+
+```{r task 3 b}
+ popular_titles %>% 
+  select(primaryTitle,CLI,vote_bin) %>% 
+  arrange(desc(vote_bin),CLI) %>% 
+  head(10)
+```
+
+As you can see this query returns a handful of garbage films like "The Pogmentary", which has articles calling it the worst TV show or Movie on IMDB of all time.
+
+#### 3. Choose a prestige actor or director and confirm that they have many projects with high scores on your success metric.
+
+```{r actors,include=FALSE}
+NAMES <- NAME_BASICS |> 
+  separate_longer_delim(knownForTitles, ",") %>% 
+  select(knownForTitles,primaryName)
+
+popular_titles <-popular_titles %>%
+  inner_join(NAMES,by=c('tconst'='knownForTitles'))
+popular_titles %>% 
+  filter(primaryName =='Robert De Niro') %>% 
+  select(primaryName,CLI,averageRating)
+```
+
+Looks like the CLI works for popular actors as well. You can see that taking the vote bin into account the CLI is actually higher than the average rating.
+
+#### Perform at least one other form of ‘spot check’ validation.
+
+Lets check two popular Ben Affleck movies both known for their "quality".
+
+```{r glgi}
+popular_titles %>%
+  filter(primaryTitle == "Gigli"|primaryTitle == 'Good Will Hunting') %>% 
+  select(CLI,primaryTitle,vote_bin) %>% 
+  distinct(primaryTitle,.keep_all = TRUE)
+```
+
+The CLI score works as expected here.
+
+#### 5. Come up with a numerical threshold for a project to be a ‘success’; that is, determine a value v such that movies above v are all “solid” or better.
+
+Based on the results below, and a confirmation with Google, 8 seems to be a great threshold.
+
+```{r}
+popular_titles %>%
+  filter(CLI >= 8 & startYear > 2000) %>% 
+  select(CLI,primaryTitle,vote_bin) %>% 
+  arrange(CLI) %>% 
+  distinct(primaryTitle,.keep_all = TRUE) %>% 
+  head(10)
+
+```

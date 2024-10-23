@@ -167,10 +167,18 @@ smooth_vals = predict(loess(season_average~seasonNumber,happy_days))
   transition_reveal(seasonNumber) +
   ease_aes('linear')
 
+ TITLE_BASICS <- TITLE_BASICS %>% 
+  inner_join(TITLE_RATINGS,by = 'tconst')
+ ## creating a metric using 
+mean(TITLE_BASICS$numVotes)
+popular_titles <- TITLE_BASICS %>% 
+  filter(numVotes > 1000)
+popular_titles <- popular_titles %>% mutate(vote_bin = ntile(numVotes, n=10))
 
+popular_titles %>% filter(vote_bin == 10) %>% head(10) %>% arrange(numVotes)
 
-
-
+popular_titles <- popular_titles %>% 
+  mutate(CLI = log10(averageRating)*vote_bin)
 
 
  
