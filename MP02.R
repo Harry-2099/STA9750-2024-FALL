@@ -206,6 +206,11 @@ decade <-recent %>%
  summarise(num_success = n()) %>%
  slice_max(num_success, n = 1) %>%  
  arrange(decade)
+recent %>% 
+  filter(startYear > 2022) %>% 
+  select(primaryName.x,genres,CLI) %>% 
+  arrange(desc(CLI)) %>% 
+  head(15)
 
   
   

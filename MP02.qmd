@@ -393,7 +393,7 @@ popular_titles %>%
 
 ```
 
-###  **Task 4: Trends in Success Over Time**
+### **Task 4: Trends in Success Over Time**
 
 #### What was the genre with the most “successes” in each decade?
 
@@ -402,30 +402,29 @@ Lets start by first filtering to get decades that are more recent by filtering f
 ```{r, decades}
 
 recent <- popular_titles %>% 
-  filter(startYear > 1959) %>%
+  filter(startYear > 1959) %>% 
   mutate(decade = floor(as.numeric(startYear) / 10) * 10)
 
-decade <-recent %>% 
- filter(CLI > 8) %>% 
- group_by(genres,decade) %>%
- separate_longer_delim(genres, ",") %>% 
- group_by(decade, genres) %>%  
- summarise(num_success = n()) %>%
- slice_max(num_success, n = 1) %>%  
- arrange(decade)
-
+decade <- recent %>%
+  filter(CLI > 8) %>% 
+  separate_longer_delim(genres, ",") %>% 
+  group_by(decade,genres) %>% 
+  summarise(num_success = n()) %>% 
+  slice_max(num_success) %>% 
+  select(num_success,decade,genres) %>% 
+  arrange(decade)
 decade
 ```
 
-As you can see the action and drama are both very popular.
+Seem to be getting drama for each one based on my metric, most likely because drama alongside many other genres.
 
 #### What genre consistently has the most “successes”? What genre used to reliably produced “successes” and has fallen out of favor?
 
-From the results above you can see that the action and adventure genre has always had a large number of succeses and the drama genre had a number of successes early on and none in recent decades.
+From the results above you can see drama is very consistent however, this could be inaccurate due to many different genres also being labeled with genre.
 
 #### What genre has produced the most “successes” since 2010? Does it have the highest success *rate* or does it only have a large number of successes because there are many productions in that genre?
 
-We can see from above that the action genre has the highest number in 2010, but does it have a good success rate?
+We can see from above that the drama genre has the highest number in 2010, but does it have a good success rate?
 
 ```{r suc rate}
 recent %>% 
@@ -527,7 +526,7 @@ ggplot(dramas, aes(x = decade, y = avg_CLI)) +
 
 One of the biggest reasons, if not the most important reason I am sure this movie will be a success if the cast. The cast contains two legends of the industry De Niro and Scorsese. Along with them Ive chosen a newer actor is extremely well received. Lets take a look at the sucess rate of the 3 of them.
 
-```{r}
+```{r cast suc}
 cast_success<- recent %>%
   filter(primaryName %in% c('Robert De Niro', 'Pedro Pascal',"Martin Scorsese")) %>% 
   group_by(primaryName) %>%

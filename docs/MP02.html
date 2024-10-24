@@ -777,17 +777,17 @@ Caused by warning:
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>recent <span class="ot">&lt;-</span> popular_titles <span class="sc">%&gt;%</span> </span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(startYear <span class="sc">&gt;</span> <span class="dv">1959</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(startYear <span class="sc">&gt;</span> <span class="dv">1959</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">decade =</span> <span class="fu">floor</span>(<span class="fu">as.numeric</span>(startYear) <span class="sc">/</span> <span class="dv">10</span>) <span class="sc">*</span> <span class="dv">10</span>)</span>
 <span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>decade <span class="ot">&lt;-</span>recent <span class="sc">%&gt;%</span> </span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">filter</span>(CLI <span class="sc">&gt;</span> <span class="dv">8</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(genres,decade) <span class="sc">%&gt;%</span></span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">group_by</span>(decade, genres) <span class="sc">%&gt;%</span>  </span>
-<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a> <span class="fu">summarise</span>(<span class="at">num_success =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a> <span class="fu">slice_max</span>(num_success, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span>  </span>
-<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a> <span class="fu">arrange</span>(decade)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>decade <span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(CLI <span class="sc">&gt;</span> <span class="dv">8</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(decade,genres) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">num_success =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(num_success) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(num_success,decade,genres) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(decade)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'decade'. You can override using the
@@ -800,26 +800,26 @@ Caused by warning:
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 7 × 3
 # Groups:   decade [7]
-  decade genres num_success
-   &lt;dbl&gt; &lt;chr&gt;        &lt;int&gt;
-1   1960 Drama         2441
-2   1970 Drama         3724
-3   1980 Drama         8096
-4   1990 Drama        20001
-5   2000 Drama        20697
-6   2010 Drama        14844
-7   2020 Drama         3121</code></pre>
+  num_success decade genres
+        &lt;int&gt;  &lt;dbl&gt; &lt;chr&gt; 
+1        2441   1960 Drama 
+2        3724   1970 Drama 
+3        8096   1980 Drama 
+4       20001   1990 Drama 
+5       20697   2000 Drama 
+6       14844   2010 Drama 
+7        3121   2020 Drama </code></pre>
 </div>
 </div>
-<p>As you can see the action and drama are both very popular.</p>
+<p>Seem to be getting drama for each one based on my metric, most likely because drama alongside many other genres.</p>
 </section>
 <section id="what-genre-consistently-has-the-most-successes-what-genre-used-to-reliably-produced-successes-and-has-fallen-out-of-favor" class="level4">
 <h4 class="anchored" data-anchor-id="what-genre-consistently-has-the-most-successes-what-genre-used-to-reliably-produced-successes-and-has-fallen-out-of-favor">What genre consistently has the most “successes”? What genre used to reliably produced “successes” and has fallen out of favor?</h4>
-<p>From the results above you can see that the action and adventure genre has always had a large number of succeses and the drama genre had a number of successes early on and none in recent decades.</p>
+<p>From the results above you can see drama is very consistent however, this could be inaccurate due to many different genres also being labeled with genre.</p>
 </section>
 <section id="what-genre-has-produced-the-most-successes-since-2010-does-it-have-the-highest-success-rate-or-does-it-only-have-a-large-number-of-successes-because-there-are-many-productions-in-that-genre" class="level4">
 <h4 class="anchored" data-anchor-id="what-genre-has-produced-the-most-successes-since-2010-does-it-have-the-highest-success-rate-or-does-it-only-have-a-large-number-of-successes-because-there-are-many-productions-in-that-genre">What genre has produced the most “successes” since 2010? Does it have the highest success <em>rate</em> or does it only have a large number of successes because there are many productions in that genre?</h4>
-<p>We can see from above that the action genre has the highest number in 2010, but does it have a good success rate?</p>
+<p>We can see from above that the drama genre has the highest number in 2010, but does it have a good success rate?</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
