@@ -871,7 +871,7 @@ Caused by warning:
 <span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
 <span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>,<span class="at">hjust=</span> <span class="dv">1</span>))<span class="sc">+</span></span>
 <span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span><span class="st">"none"</span>)<span class="sc">+</span></span>
-<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"2020 Success Rate on Genres"</span>, <span class="at">y =</span><span class="st">'Rate'</span>,<span class="at">x=</span> <span class="st">"Genre"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"2020 Success Rate By Genres"</span>, <span class="at">y =</span><span class="st">'Rate'</span>,<span class="at">x=</span> <span class="st">"Genre"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -923,7 +923,7 @@ Caused by warning:
 <h3 class="anchored" data-anchor-id="task-7-pitch">Task 7: Pitch</h3>
 <p>In the new age of cinema we see that often the box office is dominated by massively expensive yet emotionally and artistically deprived pieces of work that have started to bore much of the audience. With every movie trying to become the next action filled, 8 part marvel universe movie we have the opportunity to take a step back and release a film that satisfies critiques, fans of film, and introduce a classic to the younger generation. I purpose we take the class film Raging Bull and remake it, staring Pedro Pascal and of course De Niro. Lets get into some of benefits doing this remake.</p>
 <p><strong>Success Metric:</strong></p>
-<p>Based on success metric that takes into account both number of ratings and the Average IMDB rating the, original movie as well as the people involved all have very high scores. This metric is called the <em>CLI.</em> lets take a look at the peoples scores.</p>
+<p>Based on success metric that takes into account both number of ratings and the Average IMDB rating the, original movie as well as the people involved all have very high scores. This metric is called the <em>CLI.</em> Lets take a look at the peoples scores.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -941,35 +941,85 @@ Caused by warning:
 </div>
 </div>
 <p>We can see that they have all been part of productions that both very popular and very good.</p>
+<p><strong>Rapid Rise of Dramatic Films:</strong></p>
+<p>We know from that the most popular film genre is the action genre. However this genre is not only saturated its extremely expensive to make. According to Investopedia the cost of some action films cost over 200 million dollars like Spider-man 2, Avatar, and many others. This begs the question does it really make sense to make another action film at such a high cost when the market saturation is so high. We can see from the above bar chart that the drama genre is the second highest success rate tied with Adventure. See the rise of the drama genre below.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>dramas <span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span> </span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(genres <span class="sc">==</span> <span class="st">"Drama"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(decade) <span class="sc">%&gt;%</span> </span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_CLI =</span><span class="fu">mean</span>(CLI)) <span class="sc">%&gt;%</span> </span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(avg_CLI,genres) <span class="sc">%&gt;%</span> </span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(decade,<span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>dramas <span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(genres, <span class="st">","</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(genres <span class="sc">==</span> <span class="st">"Drama"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(decade) <span class="sc">%&gt;%</span></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">avg_CLI =</span> <span class="fu">mean</span>(CLI, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span>  </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(decade, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dramas, <span class="fu">aes</span>(<span class="at">x =</span> decade, <span class="at">y =</span> avg_CLI)) <span class="sc">+</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"darkorange"</span>,<span class="at">size =</span> .<span class="dv">7</span>,<span class="at">alpha =</span> .<span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">24</span>,<span class="at">fill =</span> <span class="st">"yellow"</span>, <span class="at">size =</span> <span class="dv">3</span>)<span class="sc">+</span></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Time"</span>, <span class="at">y =</span> <span class="st">"Cinematic Log Index Average"</span>) <span class="sc">+</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Rapid Increase of Drama Films"</span>)<span class="sc">+</span></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transition_reveal</span>(decade)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
-<pre><code>Adding missing grouping variables: `decade`</code></pre>
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
 </div>
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dramas,<span class="fu">aes</span>(<span class="at">x =</span> decade, <span class="at">y=</span> avg_CLI))<span class="sc">+</span></span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.5</span>, <span class="at">color =</span> <span class="st">"blue"</span>)<span class="sc">+</span></span>
-<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Time"</span>, <span class="at">y=</span><span class="st">"Cinematic Log Index Average"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_line()`: Each group consists of only one observation.
+ℹ Do you need to adjust the group aesthetic?
+`geom_line()`: Each group consists of only one observation.
+ℹ Do you need to adjust the group aesthetic?</code></pre>
+</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="MP02_files/figure-html/pitch graph-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="MP02_files/figure-html/pitch graph-1.gif" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
+<p><strong>Success Prone Cast:</strong></p>
+<p>One of the biggest reasons, if not the most important reason I am sure this movie will be a success if the cast. The cast contains two legends of the industry De Niro and Scorsese. Along with them Ive chosen a newer actor is extremely well received. Lets take a look at the sucess rate of the 3 of them.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>cast_success<span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(primaryName <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'Robert De Niro'</span>, <span class="st">'Pedro Pascal'</span>,<span class="st">"Martin Scorsese"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(primaryName) <span class="sc">%&gt;%</span></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(primaryTitle,<span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">num_proj =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(CLI <span class="sc">&gt;=</span> <span class="dv">8</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">success_rate =</span><span class="fu">n</span>()<span class="sc">/</span>num_proj) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(primaryTitle,primaryName,CLI,success_rate)</span>
+<span id="cb61-9"><a href="#cb61-9" aria-hidden="true" tabindex="-1"></a>cast_success</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12 × 4
+# Groups:   primaryName [3]
+   primaryTitle                primaryName       CLI success_rate
+   &lt;chr&gt;                       &lt;chr&gt;           &lt;dbl&gt;        &lt;dbl&gt;
+ 1 Mean Streets                Martin Scorsese  8.57            1
+ 2 Taxi Driver                 Robert De Niro   9.14            1
+ 3 Taxi Driver                 Martin Scorsese  9.14            1
+ 4 The Deer Hunter             Robert De Niro   9.08            1
+ 5 Raging Bull                 Robert De Niro   9.08            1
+ 6 Goodfellas                  Martin Scorsese  9.40            1
+ 7 Cape Fear                   Robert De Niro   8.63            1
+ 8 Game of Thrones             Pedro Pascal     9.64            1
+ 9 The Last of Us              Pedro Pascal     9.40            1
+10 Kingsman: The Golden Circle Pedro Pascal     8.26            1
+11 Killers of the Flower Moon  Martin Scorsese  8.81            1
+12 The Mandalorian             Pedro Pascal     9.34            1</code></pre>
+</div>
+</div>
+<p>Quite amazing, based on this CLI &gt; 8 metric of success, and of all the titles in the in the known for section the selected cast has a 100% success rate.</p>
+<p><strong>Classic Cliche Trailer:</strong></p>
+<p>From director Martin Scorsese, the visionary behind <em>Goodfellas</em>, <em>Taxi Driver</em>, and many more iconic films;<br>
+From actor Robert De Niro, the beloved star of <em>Taxi Driver</em> and <em>The Deer Hunter</em>;<br>
+From actor Pedro Pascal, Hollywood’s celebrated icon of the drama genre;<br>
+Comes the timeless re imagining, <em>Raging Bull</em>—a story of ambition, sacrifice, and redemption.</p>
+<p>Coming soon to a theater near you.</p>
 
 
 </section>

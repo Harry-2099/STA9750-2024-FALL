@@ -270,6 +270,7 @@ ggplot(happy_days, aes(x = seasonNumber, y = season_average)) +
   labs(title = "Average Ratings of Happy Days by Season",
        y = "Seasonal Average Rating", x = "Season Number") +
   theme_bw()
+  
 ```
 
 The above chart shows more clearly that were was a decline in rating as the show went on it was trending upwards towards the last few seasons. This indicates the show runners might have caught on to declining ratings and made changes to account for it. Using an animation we can see how drastic the drop from the trend was.
@@ -456,7 +457,7 @@ ggplot(rate_2020,aes(x = genres,y=success_rate,fill = genres))+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45,hjust= 1))+
   theme(legend.position ="none")+
-  labs(title = "2020 Success Rate on Genres", y ='Rate',x= "Genre")
+  labs(title = "2020 Success Rate By Genres", y ='Rate',x= "Genre")
   
 ```
 
@@ -488,7 +489,7 @@ In the new age of cinema we see that often the box office is dominated by massiv
 
 **Success Metric:**
 
-Based on success metric that takes into account both number of ratings and the Average IMDB rating the, original movie as well as the people involved all have very high scores. This metric is called the *CLI.* lets take a look at the peoples scores.
+Based on success metric that takes into account both number of ratings and the Average IMDB rating the, original movie as well as the people involved all have very high scores. This metric is called the *CLI.* Lets take a look at the peoples scores.
 
 ```{r}
 recent %>% 
@@ -501,18 +502,51 @@ recent %>%
 
 We can see that they have all been part of productions that both very popular and very good.
 
-```{r pitch graph}
-dramas <- recent %>% 
-  separate_longer_delim(genres, ",") %>% 
-  filter(genres == "Drama") %>% 
-  group_by(decade) %>% 
-  mutate(avg_CLI =mean(CLI)) %>% 
-  select(avg_CLI,genres) %>% 
-  distinct(decade,.keep_all = TRUE)
+**Rapid Rise of Dramatic Films:**
 
-ggplot(dramas,aes(x = decade, y= avg_CLI))+
-  geom_line(linewidth = 1.5, color = "blue")+
-  theme_bw()+
-  labs( x = "Time", y="Cinematic Log Index Average")
+We know from that the most popular film genre is the action genre. However this genre is not only saturated its extremely expensive to make. According to Investopedia the cost of some action films cost over 200 million dollars like Spider-man 2, Avatar, and many others. This begs the question does it really make sense to make another action film at such a high cost when the market saturation is so high. We can see from the above bar chart that the drama genre is the second highest success rate tied with Adventure. See the rise of the drama genre below.
+
+```{r pitch graph}
+dramas <- recent %>%
+  separate_longer_delim(genres, ",") %>%
+  filter(genres == "Drama") %>%
+  group_by(decade) %>%
+  summarise(avg_CLI = mean(CLI, na.rm = TRUE)) %>%  
+  distinct(decade, .keep_all = TRUE)
+
+ggplot(dramas, aes(x = decade, y = avg_CLI)) +
+  geom_line(color = "darkorange",size = .7,alpha = .5) +
+  geom_point(shape = 24,fill = "yellow", size = 3)+
+  theme_bw() +
+  labs(x = "Time", y = "Cinematic Log Index Average") +
+  ggtitle("Rapid Increase of Drama Films")+
+  transition_reveal(decade)
+```
+
+**Success Prone Cast:**
+
+One of the biggest reasons, if not the most important reason I am sure this movie will be a success if the cast. The cast contains two legends of the industry De Niro and Scorsese. Along with them Ive chosen a newer actor is extremely well received. Lets take a look at the sucess rate of the 3 of them.
+
+```{r}
+cast_success<- recent %>%
+  filter(primaryName %in% c('Robert De Niro', 'Pedro Pascal',"Martin Scorsese")) %>% 
+  group_by(primaryName) %>%
+  distinct(primaryTitle,.keep_all = TRUE) %>% 
+  mutate(num_proj = n()) %>% 
+  filter(CLI >= 8) %>% 
+  mutate(success_rate =n()/num_proj) %>% 
+  select(primaryTitle,primaryName,CLI,success_rate)
+cast_success
   
 ```
+
+Quite amazing, based on this CLI \> 8 metric of success, and of all the titles in the in the known for section the selected cast has a 100% success rate.
+
+**Classic Cliche Trailer:**
+
+From director Martin Scorsese, the visionary behind *Goodfellas*, *Taxi Driver*, and many more iconic films;\
+From actor Robert De Niro, the beloved star of *Taxi Driver* and *The Deer Hunter*;\
+From actor Pedro Pascal, Hollywood’s celebrated icon of the drama genre;\
+Comes the timeless re imagining, *Raging Bull*—a story of ambition, sacrifice, and redemption.
+
+Coming soon to a theater near you.
