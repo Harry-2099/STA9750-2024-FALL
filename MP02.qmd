@@ -503,7 +503,7 @@ We can see that they have all been part of productions that both very popular an
 
 **Rapid Rise of Dramatic Films:**
 
-We know from that the most popular film genre is the action genre. However this genre is not only saturated its extremely expensive to make. According to Investopedia the cost of some action films cost over 200 million dollars like Spider-man 2, Avatar, and many others. This begs the question does it really make sense to make another action film at such a high cost when the market saturation is so high. We can see from the above bar chart that the drama genre is the second highest success rate tied with Adventure. See the rise of the drama genre below.
+We know that the most popular film genre is the drama genre. However this genre is could also be saturated, so why not choose something like action. According to Investopedia the cost of some action films cost over 200 million dollars like Spider-man 2, Avatar, and many others. This begs the question does it really make sense to make another action film at such a high cost, when drama is much more affordable and the rise is so rapid. See the rise of the drama genre below.
 
 ```{r pitch graph}
 dramas <- recent %>%
