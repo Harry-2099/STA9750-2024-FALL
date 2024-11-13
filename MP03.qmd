@@ -1,0 +1,116 @@
+---
+title: "Political Analysis"
+author: "Harry Sohal"
+editor: visual
+code-fold: true
+---
+
+## **Set-Up and Initial Exploration**
+
+In this analysis, in honor of election season this year we will take a look at some trends in the political landscape of the United States. in order to do this we will need some reliable data sources on which we can base out analysis. This includes historical election results and also, some cruical shape files for visualizations. Sources include the MIT election lab as well US Census TIGER shape files.
+
+### Task 1 & 2
+
+In order to properly and effecently work with the data we must automate the download process, considering there a mulitple files that need to downloaded. Using a for loop and using the variable format method `sprintf` we can automate the download of each file dynamically accounting for i. In the second download we use if else statements to account for the changes in the URLs.
+
+```{r setup libs, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(stringr)
+setwd("~/R/Project_0/")
+```
+
+```{r  download 1,results = "hide"}
+### DATA ONE 
+house_votes <- read_csv("1976-2022-house (1).csv")
+pres <- read_csv("1976-2020-president.csv")
+
+### DATA TWO CONGRESSIONAL BOUNDRIES
+library(httr)
+for (i in 94:112) {
+  BASE_URL <- "https://cdmaps.polisci.ucla.edu/shp/"
+  zip_file <- paste0("districts", sprintf("%03d", i), ".zip")  # Adjusts the format to three digits
+  # Check if file exists
+  if (!file.exists(zip_file)) {
+    FILE_URL <- paste0(BASE_URL, zip_file)
+    print(FILE_URL)
+    # download
+    download.file(FILE_URL, destfile = zip_file,mode = "wb")  # Use appropriate method if needed
+    
+  }
+}
+```
+
+```{r download 2 }
+
+for (i in 2014:2022) {
+  BASE_URL <- "https://www2.census.gov/geo/tiger/"
+  if (i >= 2018) { #### accounting for changes in the cd#
+    file <- paste0("TIGER", sprintf("%d", i), "/CD/tl_", sprintf("%d", i), "_us_cd116.zip")
+  } else if (i > 2015) {
+    file <- paste0("TIGER", sprintf("%d", i), "/CD/tl_", sprintf("%d", i), "_us_cd115.zip")
+  } else {
+    file <- paste0("TIGER", sprintf("%d", i), "/CD/tl_", sprintf("%d", i), "_us_cd114.zip")
+  }
+  download_name <- paste0("TIGER",sprintf("%d",i),".zip")
+  # Check if file exists
+  if (!file.exists(download_name)) {
+    FILE_URL <- paste0(BASE_URL,file)
+    print(FILE_URL)
+    # download
+    download.file(FILE_URL, destfile = download_name,mode = "wb")
+  }
+}
+```
+
+### TASK 3: Party & Seat Changes
+
+In this task we take a look at how the number of seats change over time for the states. This is an interesting analysis as it also points to how the population of a state changes over time, from 1976 to 2022. You can see below that Texas gains the most seats, and New York lost the most amount of seats.
+
+In addition to this I've also included a plot to show how the number of seats for each party changes across time. Interestingly, the trends in the changes of party reflect the recent election, and in some cases the political shift.
+
+```{r task 3}
+seats_won <- house_votes %>%
+  group_by(state, year,district) %>%
+  slice_max(candidatevotes,n = 1) %>% 
+  select(year,state,district,party, candidate,candidatevotes)
+
+### TASK 3 PARTY CHANGES AND SEAT CHANGE 
+library(ggthemes)
+house_votes %>% group_by(year,state) %>% 
+  mutate(num_seats = n_distinct(district)) %>%#couting the seats via district
+  ungroup() %>% 
+  select(year,state,num_seats) %>%
+  filter(year== 2022 |year ==1976) %>%
+  group_by(state) %>% 
+  mutate(diff_seats = num_seats - lag(num_seats)) %>% # subtracting the newer value from the older via lag function
+  filter(year==2022) %>% # this gives up the "lagged" values since the older values will not have a diff via the lag method
+  distinct() %>% 
+  arrange(desc(abs(diff_seats))) %>% #ordering by biggest differece by absoulte value
+  head(25) %>% 
+  #ploting above
+  ggplot(aes(x = state,y = diff_seats,fill = state))+
+  geom_bar(stat = "identity",width = 1)+
+  theme_clean()+
+  theme(legend.position = "FALSE")+
+  labs(title= "Changes in Seats of the House of Representatives by State", 
+       x= "State", y = "Change in Seats")+
+  coord_flip()
+```
+
+```{r party changes task 3}
+library(ggthemes)
+
+seats_won %>% group_by(year,party) %>%
+  drop_na() %>% 
+  mutate(party_seats = n()) %>% 
+  ggplot(aes(x = year,y = party_seats,color = party))+
+  scale_color_manual(
+    values= c("DEMOCRAT" = "blue","REPUBLICAN"= "red",
+            "DEMOCRATIC-FARMER-LABOR"= "darkgreen","INDEPENDENT"="lightblue"))+
+  geom_line(linewidth = 1.2)+
+  theme_minimal()+
+  theme(legend.position = "bottom",legend.text = element_text(size = 5))+
+  labs(title = "Party Seats by Year ", x = "Year", y= "Number of Seats ", color = "Party")
+```
