@@ -274,7 +274,7 @@ ggdraw()+
 
 ### Task 6: Animating Party Changes in States During Presidential Elections
 
-In this task we can use the `tmap` package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians).
+In this task we can use the `tmap` package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians). This graph is great representation of the "swing states" that we always hear being talked about and the effect the north east states have when they swing.
 
 ```{r animated plot}
 library(tools)
