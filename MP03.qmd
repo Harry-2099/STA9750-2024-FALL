@@ -277,6 +277,7 @@ ggdraw()+
 In this task we can use the `tmap` package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians).
 
 ```{r animated plot}
+library(tools)
 parties <- pres %>%
   mutate(state = toTitleCase(tolower(state))) %>% 
   filter(state !="Hawaii" & state != "Alaska" & year >= 2008) %>% 
@@ -300,6 +301,6 @@ anim <- parties %>%
   tm_facets(along = "year", free.coords = FALSE)+
   tm_text("state_po", size = .3, col = "white", fontface = "bold")
  
-#anim_map<- tmap_animation(anim,"anim_map.gif") 
- tmap_animation(anim, delay = 50)
+ tmap_animation(anim, delay = 50,"anim_map.gif")
+knitr::include_graphics("anim_map.gif")
 ```
