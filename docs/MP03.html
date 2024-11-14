@@ -101,6 +101,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<link href="site_libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+<script src="site_libs/datatables-binding-0.33/datatables.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<link href="site_libs/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+<link href="site_libs/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
+<script src="site_libs/dt-core-1.13.6/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="site_libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
 
 
 </head>
@@ -300,6 +310,278 @@ lgl (2): writein, notes
 <p><img src="MP03_files/figure-html/party changes task 3-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
+</div>
+</div>
+</section>
+<section id="fusion-fusses" class="level3">
+<h3 class="anchored" data-anchor-id="fusion-fusses">Fusion Fusses</h3>
+<p>In the state of New York, there is a fusion ticket system that allows for candidates to be put under more than one party line. This creates an interesting dynamic that allows for candidates to win even though they did not have the max number of votes in their respective parties. We see below that as a matter a fact, multiple times the candidate with the highest single party votes does not always win due to the fusion system.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fusion <span class="ot">&lt;-</span> house_votes <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(fusion_ticket <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">&amp;</span> candidate <span class="sc">!=</span> <span class="st">"BLANK"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year,candidate,candidatevotes,district,party,totalvotes) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year,district,candidate) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_fusion_votes =</span><span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year,district) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">highest_single_party_votes =</span> candidate[<span class="fu">which.max</span>(candidatevotes)]) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>fusion_winners <span class="ot">&lt;-</span> fusion <span class="sc">%&gt;%</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year,district) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">district_winner =</span> candidate[<span class="fu">which.max</span>(total_fusion_votes)]) <span class="sc">%&gt;%</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year,district,district_winner,highest_single_party_votes) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(district_winner<span class="sc">!=</span>highest_single_party_votes) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  DT<span class="sc">::</span><span class="fu">datatable</span>()</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>fusion_winners</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-f9e1ca822854e7c6b901" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-f9e1ca822854e7c6b901">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13"],[1980,1980,1986,1992,1996,2006,2006,2012,2018,2018,2022,2022,2022],[3,6,27,2,30,25,29,27,24,27,4,17,22],["GREGORY W CARMAN","JOHN LEBOUTILLIER","GEORGE C WORTLEY","SAM GEJDENSON","JACK QUINN","JAMES T WALSH","JOHN R \"RANDY\" KUHL JR","CHRIS COLLINS","JOHN M KATKO","CHRIS COLLINS","ANTHONY P D’ESPOSITO","MICHAEL V LAWLER","BRANDON M WILLIAMS"],["JEROME A AMBRO JR","LESTER L WOLFF","ROSEMARY S POOLER","RICK LAZIO","FRANCIS J PORDUM","DAN MAFFEI","ERIC J MASSA","KATHLEEN C HOCHUL","DANA BALTER","NATHAN D MCMURRAY","LAURA A GILLEN","SEAN PATRICK MALONEY","FRANCIS CONOLE"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>year<\/th>\n      <th>district<\/th>\n      <th>district_winner<\/th>\n      <th>highest_single_party_votes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"year","targets":1},{"name":"district","targets":2},{"name":"district_winner","targets":3},{"name":"highest_single_party_votes","targets":4}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="congressional-vs-presidential" class="level3">
+<h3 class="anchored" data-anchor-id="congressional-vs-presidential">Congressional vs Presidential</h3>
+<p>Here we answer the question of whether or not there is a difference in votes in the congressional candidate and the presidential candidate of the same party. In this analysis I found certain cases where the congressional candidates had slightly more votes than the presidential, however the average difference across the years has actually been increasing.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>house_winners <span class="ot">&lt;-</span> house_votes <span class="sc">%&gt;%</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year,district,state,candidate) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cong_votes=</span><span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  ungroup <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(year,district,state) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cong_winner =</span> candidate[<span class="fu">which.max</span>(cong_votes)]) <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cong_winner <span class="sc">==</span> candidate) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year,party,state,state_fips,district,cong_votes,cong_winner) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>pres <span class="sc">%&gt;%</span> </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(house_winners, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"state_fips"</span>,<span class="st">"party_detailed"</span> <span class="ot">=</span> <span class="st">"party"</span>,<span class="st">"state"</span>,<span class="st">"year"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(state,candidate,year,cong_winner) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">vote_diff =</span> candidatevotes <span class="sc">-</span> cong_votes) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(year) <span class="sc">%&gt;%</span>  </span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_diff =</span> <span class="fu">mean</span>(vote_diff)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year,state,state_fips,party_detailed,candidate,cong_winner,district,vote_diff,avg_diff) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> avg_diff))<span class="sc">+</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>, <span class="at">color =</span> <span class="st">"red"</span>)<span class="sc">+</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Average Difference Between Congressional Candidate Votes &amp; Presidential Votes"</span>,</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Average Difference"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MP03_files/figure-html/cong vs pres-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="task-4-unzip-function" class="level3">
+<h3 class="anchored" data-anchor-id="task-4-unzip-function">Task 4: Unzip Function</h3>
+<p>When it is necessary to repeat a process over and over again it might be beneficial to create a function that is written once and can be used quickly again, or even automated. In this case we will make a function that can take any zip file, and receive its shape file. See below with a download and unzip along with a quick plot of the boroughs.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'sf' was built under R version 4.3.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(<span class="st">"nyc_borough_boundaries.zip"</span>)){</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">download.file</span>(<span class="st">"https://data.cityofnewyork.us/api/geospatial/tqmj-j8zm?method=export&amp;format=Shapefile"</span>, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">destfile=</span><span class="st">"nyc_borough_boundaries.zip"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="do">##-</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>unzip_shape <span class="ot">&lt;-</span> <span class="cf">function</span>(filename){</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  dest_dir <span class="ot">&lt;-</span> <span class="fu">tempdir</span>()</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">&lt;-</span> <span class="fu">unzip</span>(<span class="at">zipfile =</span> filename,<span class="at">exdir =</span> dest_dir)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  shp_file <span class="ot">&lt;-</span> file[<span class="fu">grepl</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.shp$"</span>,file)]</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  sf <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(shp_file)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(sf)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="do">### UNZIPPIING AND PLOTTING</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>nyc_sf <span class="ot">&lt;-</span> <span class="fu">unzip_shape</span>(<span class="st">"nyc_borough_boundaries.zip"</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(nyc_sf,</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">geometry=</span>geometry,</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> shape_area)) <span class="sc">+</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MP03_files/figure-html/shape zip-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="task-5-revisiting-bush-vs-gore-2000" class="level3">
+<h3 class="anchored" data-anchor-id="task-5-revisiting-bush-vs-gore-2000">Task 5: Revisiting Bush vs Gore, 2000</h3>
+<p>Using some of the methods previously stated and a new method I will introduce shortly we can plot the US election of 2000, which many consider to be a very controversial election.</p>
+<p>This new method involves using a <code>cowplot</code> that allows us to <code>ggdraw</code> multiple different plots over each other. This will be very beneficial when plotting the US because the geographic locations of Hawaii and Alaska make a simple plot extremely ugly. This process involves filtering out the 2 states and creating a “main” plot as seen in the code below, and then plotting those 2 states separately. Once this is done we can use the <code>ggdraw</code> function to join them all together and tinker with the x, y, width, and height to get a nice looking plot (note: 0 is the center)</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tools)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>bushVgore <span class="ot">&lt;-</span> <span class="fu">unzip_shape</span>(<span class="st">"tl_2023_us_state.zip"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(bushVgore, </span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#        aes(geometry=geometry)) + </span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#     geom_sf()</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>bushVgore <span class="ot">&lt;-</span> bushVgore <span class="sc">%&gt;%</span> <span class="fu">select</span>(NAME,geometry)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>election_2000 <span class="ot">&lt;-</span> pres <span class="sc">%&gt;%</span> </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2000</span> <span class="sc">&amp;</span> candidate <span class="sc">==</span> <span class="st">"BUSH, GEORGE W."</span><span class="sc">|</span> candidate<span class="sc">==</span><span class="st">"GORE, AL"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state =</span> <span class="fu">toTitleCase</span>(<span class="fu">tolower</span>(state))) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(state,state_po,candidate,candidatevotes,state_fips,totalvotes) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(bushVgore, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"state"</span><span class="ot">=</span><span class="st">"NAME"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(state) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state_winner =</span> candidate[<span class="fu">which.max</span>(candidatevotes)])</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>color <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"BUSH, GEORGE W."</span> <span class="ot">=</span> <span class="st">"red"</span>,<span class="st">"GORE, AL"</span><span class="ot">=</span><span class="st">"blue"</span>)</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>main_land <span class="ot">&lt;-</span> election_2000 <span class="sc">%&gt;%</span> </span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>state <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Hawaii"</span>, <span class="st">"Alaska"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">geometry =</span> geometry, <span class="at">fill =</span> state_winner)) <span class="sc">+</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> color) <span class="sc">+</span> </span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>() <span class="sc">+</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"Candidate"</span>) <span class="sc">+</span> </span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> state_po), <span class="at">size =</span> <span class="dv">1</span>, <span class="at">color =</span> <span class="st">"white"</span>,<span class="at">fontface =</span> <span class="st">"bold"</span>)<span class="sc">+</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="co">#main_land</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>hawaii <span class="ot">&lt;-</span> election_2000 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(state <span class="sc">==</span> <span class="st">"Hawaii"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">geometry =</span> geometry,<span class="at">fill =</span> state_winner))<span class="sc">+</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> color)<span class="sc">+</span></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"Candidate"</span>) <span class="sc">+</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>   <span class="fu">coord_sf</span>(<span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>)) <span class="sc">+</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()<span class="sc">+</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> state_po), <span class="at">size =</span> <span class="dv">1</span>, <span class="at">color =</span> <span class="st">"white"</span>,<span class="at">fontface =</span> <span class="st">"bold"</span>)<span class="sc">+</span></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"FALSE"</span>)</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a><span class="co">#hawaii</span></span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>alaska <span class="ot">&lt;-</span> election_2000 <span class="sc">%&gt;%</span>  <span class="fu">filter</span>(state <span class="sc">==</span><span class="st">"Alaska"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">geometry =</span> geometry,<span class="at">fill =</span> state_winner))<span class="sc">+</span></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> color)<span class="sc">+</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"Candidate"</span>) <span class="sc">+</span></span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_sf</span>(<span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>)) <span class="sc">+</span></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()<span class="sc">+</span></span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> state_po), <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"white"</span>,<span class="at">fontface =</span> <span class="st">"bold"</span>)<span class="sc">+</span></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"FALSE"</span>)</span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a><span class="co">#alaska</span></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a><span class="co"># library(parallel)</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a><span class="co"># options(mc.cores = NULL)</span></span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cowplot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'cowplot'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:ggthemes':
+
+    theme_map</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:lubridate':
+
+    stamp</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gganimate)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggdraw</span>()<span class="sc">+</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">draw_plot</span>(main_land)<span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">draw_plot</span>(hawaii, <span class="at">x=</span> .<span class="dv">1</span>,<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">height =</span> <span class="fl">0.15</span>)<span class="sc">+</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">draw_plot</span>(alaska,<span class="at">y =</span> <span class="sc">-</span>.<span class="dv">25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MP03_files/figure-html/bush vs gore-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="task-6-animating-party-changes-in-states-during-presidential-elections" class="level3">
+<h3 class="anchored" data-anchor-id="task-6-animating-party-changes-in-states-during-presidential-elections">Task 6: Animating Party Changes in States During Presidential Elections</h3>
+<p>In this task we can use the <code>tmap</code> package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>parties <span class="ot">&lt;-</span> pres <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state =</span> <span class="fu">toTitleCase</span>(<span class="fu">tolower</span>(state))) <span class="sc">%&gt;%</span> </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(state <span class="sc">!=</span><span class="st">"Hawaii"</span> <span class="sc">&amp;</span> state <span class="sc">!=</span> <span class="st">"Alaska"</span> <span class="sc">&amp;</span> year <span class="sc">&gt;=</span> <span class="dv">2008</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(bushVgore, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"state"</span><span class="ot">=</span><span class="st">"NAME"</span>)) <span class="sc">%&gt;%</span> <span class="co">#bushvgore is the shape file</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(state,year) <span class="sc">%&gt;%</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state_winner =</span> party_detailed[<span class="fu">which.max</span>(candidatevotes)]) <span class="sc">%&gt;%</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="do">### facetmap</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Breaking News: tmap 3.x is retiring. Please test v4, e.g. with
+remotes::install_github('r-tmap/tmap')</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>tmap mode set to plotting</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="do">###ANIMATING THE FACET</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>anim <span class="ot">&lt;-</span> parties <span class="sc">%&gt;%</span> </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">&gt;=</span> <span class="dv">2000</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>() <span class="sc">+</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"state_winner"</span>, <span class="at">title =</span> <span class="st">"Party"</span>, </span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">palette =</span> <span class="fu">c</span>(<span class="st">"REPUBLICAN"</span> <span class="ot">=</span> <span class="st">"red"</span>, </span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"DEMOCRAT"</span> <span class="ot">=</span> <span class="st">"blue"</span>,</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"DEMOCRATIC-FARMER-LABOR"</span> <span class="ot">=</span> <span class="st">"lightblue"</span>)) <span class="sc">+</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_facets</span>(<span class="at">along =</span> <span class="st">"year"</span>, <span class="at">free.coords =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_text</span>(<span class="st">"state_po"</span>, <span class="at">size =</span> .<span class="dv">3</span>, <span class="at">col =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>)</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="co">#anim_map&lt;- tmap_animation(anim,"anim_map.gif") </span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a> <span class="fu">tmap_animation</span>(anim, <span class="at">delay =</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Creating frames</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>========================================</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>====================</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>====================</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Creating animation</code></pre>
 </div>
 </div>
 

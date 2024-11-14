@@ -3,6 +3,7 @@ title: "Political Analysis"
 author: "Harry Sohal"
 editor: visual
 code-fold: true
+cache: true
 ---
 
 ## **Set-Up and Initial Exploration**
@@ -113,4 +114,192 @@ seats_won %>% group_by(year,party) %>%
   theme_minimal()+
   theme(legend.position = "bottom",legend.text = element_text(size = 5))+
   labs(title = "Party Seats by Year ", x = "Year", y= "Number of Seats ", color = "Party")
+```
+
+### Fusion Fusses
+
+In the state of New York, there is a fusion ticket system that allows for candidates to be put under more than one party line. This creates an interesting dynamic that allows for candidates to win even though they did not have the max number of votes in their respective parties. We see below that as a matter a fact, multiple times the candidate with the highest single party votes does not always win due to the fusion system.
+
+```{r fusions}
+fusion <- house_votes %>% 
+  filter(fusion_ticket == TRUE & candidate != "BLANK") %>% 
+  select(year,candidate,candidatevotes,district,party,totalvotes) %>% 
+  group_by(year,district,candidate) %>% 
+  mutate(total_fusion_votes =sum(candidatevotes)) %>% 
+  ungroup() %>% 
+  group_by(year,district) %>% 
+  mutate(highest_single_party_votes = candidate[which.max(candidatevotes)]) %>% 
+  ungroup()
+ 
+fusion_winners <- fusion %>%
+  group_by(year,district) %>% 
+  mutate(district_winner = candidate[which.max(total_fusion_votes)]) %>%
+  select(year,district,district_winner,highest_single_party_votes) %>% 
+  filter(district_winner!=highest_single_party_votes) %>% 
+  distinct() %>% 
+  DT::datatable()
+fusion_winners
+```
+
+### Congressional vs Presidential
+
+Here we answer the question of whether or not there is a difference in votes in the congressional candidate and the presidential candidate of the same party. In this analysis I found certain cases where the congressional candidates had slightly more votes than the presidential, however the average difference across the years has actually been increasing.
+
+```{r cong vs pres, warning=FALSE}
+house_winners <- house_votes %>% 
+  group_by(year,district,state,candidate) %>% 
+  mutate(cong_votes=sum(candidatevotes)) %>% 
+  ungroup %>% group_by(year,district,state) %>% 
+  mutate(cong_winner = candidate[which.max(cong_votes)]) %>% ungroup() %>% 
+  filter(cong_winner == candidate) %>% 
+  select(year,party,state,state_fips,district,cong_votes,cong_winner) %>% 
+  ungroup()
+
+ 
+pres %>% 
+  inner_join(house_winners, by = c("state_fips","party_detailed" = "party","state","year")) %>% 
+  group_by(state,candidate,year,cong_winner) %>% 
+  mutate(vote_diff = candidatevotes - cong_votes) %>% 
+  ungroup() %>% group_by(year) %>%  
+  mutate(avg_diff = mean(vote_diff)) %>% 
+  select(year,state,state_fips,party_detailed,candidate,cong_winner,district,vote_diff,avg_diff) %>% 
+  ggplot(aes(x = year, y = avg_diff))+
+  geom_line(linewidth = 1.2, color = "red")+
+  theme_minimal()+
+  labs(title = "Average Difference Between Congressional Candidate Votes & Presidential Votes",
+       x = "Year", y = "Average Difference")
+```
+
+### Task 4: Unzip Function
+
+When it is necessary to repeat a process over and over again it might be beneficial to create a function that is written once and can be used quickly again, or even automated. In this case we will make a function that can take any zip file, and receive its shape file. See below with a download and unzip along with a quick plot of the boroughs.
+
+```{r shape zip}
+
+library(sf)
+
+if(!file.exists("nyc_borough_boundaries.zip")){
+    download.file("https://data.cityofnewyork.us/api/geospatial/tqmj-j8zm?method=export&format=Shapefile", 
+              destfile="nyc_borough_boundaries.zip")
+}
+
+##-
+unzip_shape <- function(filename){
+ 
+  dest_dir <- tempdir()
+  file <- unzip(zipfile = filename,exdir = dest_dir)
+  shp_file <- file[grepl("\\.shp$",file)]
+  sf <- read_sf(shp_file)
+  return(sf)
+}
+### UNZIPPIING AND PLOTTING
+nyc_sf <- unzip_shape("nyc_borough_boundaries.zip")
+
+ggplot(nyc_sf,
+       aes(geometry=geometry,
+           fill = shape_area)) +
+    geom_sf()+
+  theme_void()
+
+
+```
+
+### Task 5: Revisiting Bush vs Gore, 2000
+
+Using some of the methods previously stated and a new method I will introduce shortly we can plot the US election of 2000, which many consider to be a very controversial election.
+
+This new method involves using a `cowplot` that allows us to `ggdraw` multiple different plots over each other. This will be very beneficial when plotting the US because the geographic locations of Hawaii and Alaska make a simple plot extremely ugly. This process involves filtering out the 2 states and creating a "main" plot as seen in the code below, and then plotting those 2 states separately. Once this is done we can use the `ggdraw` function to join them all together and tinker with the x, y, width, and height to get a nice looking plot (note: 0 is the center)
+
+```{r bush vs gore, warning= FALSE}
+library(tools)
+bushVgore <- unzip_shape("tl_2023_us_state.zip")
+
+# ggplot(bushVgore, 
+#        aes(geometry=geometry)) + 
+#     geom_sf()
+
+bushVgore <- bushVgore %>% select(NAME,geometry)
+
+election_2000 <- pres %>% 
+  filter(year == 2000 & candidate == "BUSH, GEORGE W."| candidate=="GORE, AL") %>% 
+  mutate(state = toTitleCase(tolower(state))) %>% 
+  select(state,state_po,candidate,candidatevotes,state_fips,totalvotes) %>% 
+  inner_join(bushVgore, by = c("state"="NAME")) %>% 
+  group_by(state) %>% 
+  mutate(state_winner = candidate[which.max(candidatevotes)])
+color <- c("BUSH, GEORGE W." = "red","GORE, AL"="blue")
+main_land <- election_2000 %>% 
+  filter(!state %in% c("Hawaii", "Alaska")) %>% 
+  ggplot(aes(geometry = geometry, fill = state_winner)) +
+  scale_fill_manual(values = color) + 
+  geom_sf() +
+  labs(fill = "Candidate") + 
+  geom_sf_text(aes(label = state_po), size = 1, color = "white",fontface = "bold")+
+  theme_void()
+#main_land
+
+hawaii <- election_2000 %>% filter(state == "Hawaii") %>% 
+  ggplot(aes(geometry = geometry,fill = state_winner))+
+  scale_fill_manual(values = color)+
+  geom_sf()+
+  labs(fill = "Candidate") +
+   coord_sf(crs = st_crs(4326)) +
+  theme_void()+
+  geom_sf_text(aes(label = state_po), size = 1, color = "white",fontface = "bold")+
+  theme(legend.position = "FALSE")
+#hawaii
+
+alaska <- election_2000 %>%  filter(state =="Alaska") %>% 
+  ggplot(aes(geometry = geometry,fill = state_winner))+
+  scale_fill_manual(values = color)+
+  geom_sf()+
+  labs(fill = "Candidate") +
+    coord_sf(crs = st_crs(4326)) +
+  theme_void()+
+  geom_sf_text(aes(label = state_po), size = 2, color = "white",fontface = "bold")+
+  theme(legend.position = "FALSE")
+#alaska
+
+# library(parallel)
+# options(mc.cores = NULL)
+
+library(cowplot)
+library(gganimate)
+ggdraw()+
+  draw_plot(main_land)+
+  draw_plot(hawaii, x= .1,width = 0.15, height = 0.15)+
+  draw_plot(alaska,y = -.25)
+
+```
+
+### Task 6: Animating Party Changes in States During Presidential Elections
+
+In this task we can use the `tmap` package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians).
+
+```{r animated plot}
+parties <- pres %>%
+  mutate(state = toTitleCase(tolower(state))) %>% 
+  filter(state !="Hawaii" & state != "Alaska" & year >= 2008) %>% 
+  inner_join(bushVgore, by = c("state"="NAME")) %>% #bushvgore is the shape file
+  group_by(state,year) %>%
+  mutate(state_winner = party_detailed[which.max(candidatevotes)]) %>%
+  ungroup()
+
+### facetmap
+library(tmap)
+tmap_mode("plot")
+###ANIMATING THE FACET
+anim <- parties %>% 
+  filter(year >= 2000) %>% 
+  st_as_sf() %>% 
+  tm_shape() +
+  tm_polygons("state_winner", title = "Party", 
+              palette = c("REPUBLICAN" = "red", 
+                          "DEMOCRAT" = "blue",
+                          "DEMOCRATIC-FARMER-LABOR" = "lightblue")) +
+  tm_facets(along = "year", free.coords = FALSE)+
+  tm_text("state_po", size = .3, col = "white", fontface = "bold")
+ 
+#anim_map<- tmap_animation(anim,"anim_map.gif") 
+ tmap_animation(anim, delay = 50)
 ```
