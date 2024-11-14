@@ -248,7 +248,7 @@ lgl (2): writein, notes
 <section id="task-3-party-seat-changes" class="level3">
 <h3 class="anchored" data-anchor-id="task-3-party-seat-changes">TASK 3: Party &amp; Seat Changes</h3>
 <p>In this task we take a look at how the number of seats change over time for the states. This is an interesting analysis as it also points to how the population of a state changes over time, from 1976 to 2022. You can see below that Texas gains the most seats, and New York lost the most amount of seats.</p>
-<p>In addition to this I’ve also included a plot to show how the number of seats for each party changes across time. Interestingly, the trends in the changes of party reflect the recent election, and in some cases the political shift.</p>
+<p>In addition to this I’ve also included a plot to show how the number of seats for each party changes across time. Interestingly, the trends in the changes of party reflect the recent election, and in some ways the shift in political climate.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -587,6 +587,49 @@ Animation saved to /Users/harry/R/Project_0/anim_map.gif </code></pre>
 <p><img src="anim_map.gif" class="img-fluid figure-img"></p>
 </figure>
 </div>
+</div>
+</div>
+</section>
+<section id="task-7-electoral-method-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="task-7-electoral-method-analysis">Task 7: Electoral Method Analysis</h3>
+<p>In this section we am to understand how the different methods can effect the out come of the presidential election. For this section my code is quite long so I wont go into details of each part of the code, but essentially Ive computed the winners based on each method and displayed the results in a <code>dt::datatable()</code>. With WTall representing Winner take all and SPW representing the State Proportional Wins we can see how the candidates differ. If we were to select a candidate based on National Candidate Votes you can see that we would have had a different president in 2000. Based on number of Winner Take all and SPW, however the results would be the same.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>ECV <span class="ot">&lt;-</span> election_2000 <span class="sc">%&gt;%</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(candidate <span class="sc">%in%</span><span class="fu">c</span>(<span class="st">"BUSH, GEORGE W."</span>,<span class="st">"GORE, AL"</span>) <span class="sc">&amp;</span> state <span class="sc">!=</span><span class="st">"District of Columbia"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(state,candidate,candidatevotes,totalvotes) <span class="sc">%&gt;%</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(state) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">WTall =</span> candidate[<span class="fu">which.max</span>(candidatevotes)]) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_prop =</span> <span class="fu">case_when</span>(</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>      candidate <span class="sc">==</span> <span class="st">"BUSH, GEORGE W."</span> <span class="sc">~</span> candidatevotes <span class="sc">/</span> totalvotes,<span class="cn">TRUE</span> <span class="sc">~</span><span class="cn">NA_real_</span>),</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">gore_prop =</span> <span class="dv">1</span><span class="sc">-</span>bush_prop) <span class="sc">%&gt;%</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(WTall) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">national_cand_votes =</span> <span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_national_votes =</span> <span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(WTall) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">national_prop =</span> (national_cand_votes<span class="sc">/</span>total_national_votes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>ECV <span class="ot">&lt;-</span> ECV <span class="sc">%&gt;%</span> </span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>candidate) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(bush_prop) <span class="sc">&amp;!</span><span class="fu">is.na</span>(gore_prop)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(state, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_WTall =</span> <span class="fu">sum</span>(WTall <span class="sc">==</span> <span class="st">"BUSH, GEORGE W."</span>),</span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">gore_WTall =</span> <span class="fu">sum</span>(WTall <span class="sc">==</span> <span class="st">"GORE, AL"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_state_prop_win =</span> <span class="fu">case_when</span>(bush_prop<span class="sc">&gt;</span>gore_prop <span class="sc">~</span><span class="dv">1</span>,<span class="fu">is.na</span>(bush_prop) <span class="sc">~</span> <span class="cn">NA_real_</span>, <span class="cn">TRUE</span><span class="sc">~</span><span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">num_SPW_bush =</span><span class="fu">case_when</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">1</span> <span class="sc">~</span> <span class="fu">sum</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">1</span>),<span class="cn">TRUE</span><span class="sc">~</span><span class="cn">NA_real_</span>),<span class="co">#state proportional wins</span></span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">num_SPW_gore =</span> <span class="fu">case_when</span>(bush_state_prop_win <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="fu">sum</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">0</span>), <span class="cn">TRUE</span><span class="sc">~</span> <span class="cn">NA_real_</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">2</span>,<span class="sc">-</span><span class="dv">3</span>, <span class="sc">-</span>bush_prop, <span class="sc">-</span>gore_prop, <span class="sc">-</span>bush_state_prop_win) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(WTall,<span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">cand =</span> WTall) <span class="sc">%&gt;%</span></span>
+<span id="cb29-29"><a href="#cb29-29" aria-hidden="true" tabindex="-1"></a>  DT<span class="sc">::</span><span class="fu">datatable</span>()</span>
+<span id="cb29-30"><a href="#cb29-30" aria-hidden="true" tabindex="-1"></a>ECV</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-98e5423eaf7ab4543d1f" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-98e5423eaf7ab4543d1f">{"x":{"filter":"none","vertical":false,"data":[["1","2"],["BUSH, GEORGE W.","GORE, AL"],[49609848,51652387],[101262235,101262235],[0.489914606368307,0.510085393631693],[30,30],[20,20],[26,null],[null,24]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>cand<\/th>\n      <th>national_cand_votes<\/th>\n      <th>total_national_votes<\/th>\n      <th>national_prop<\/th>\n      <th>bush_WTall<\/th>\n      <th>gore_WTall<\/th>\n      <th>num_SPW_bush<\/th>\n      <th>num_SPW_gore<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7,8]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"cand","targets":1},{"name":"national_cand_votes","targets":2},{"name":"total_national_votes","targets":3},{"name":"national_prop","targets":4},{"name":"bush_WTall","targets":5},{"name":"gore_WTall","targets":6},{"name":"num_SPW_bush","targets":7},{"name":"num_SPW_gore","targets":8}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 

@@ -69,7 +69,7 @@ for (i in 2014:2022) {
 
 In this task we take a look at how the number of seats change over time for the states. This is an interesting analysis as it also points to how the population of a state changes over time, from 1976 to 2022. You can see below that Texas gains the most seats, and New York lost the most amount of seats.
 
-In addition to this I've also included a plot to show how the number of seats for each party changes across time. Interestingly, the trends in the changes of party reflect the recent election, and in some cases the political shift.
+In addition to this I've also included a plot to show how the number of seats for each party changes across time. Interestingly, the trends in the changes of party reflect the recent election, and in some ways the shift in political climate.
 
 ```{r task 3}
 seats_won <- house_votes %>%
@@ -303,4 +303,41 @@ anim <- parties %>%
  
  tmap_animation(anim, delay = 50,"anim_map.gif")
 knitr::include_graphics("anim_map.gif")
+```
+
+### Task 7: Electoral Method Analysis
+
+In this section we am to understand how the different methods can effect the out come of the presidential election. For this section my code is quite long so I wont go into details of each part of the code, but essentially Ive computed the winners based on each method and displayed the results in a `dt::datatable()`. With WTall representing Winner take all and SPW representing the State Proportional Wins we can see how the candidates differ. If we were to select a candidate based on National Candidate Votes you can see that we would have had a different president in 2000. Based on number of Winner Take all and SPW, however the results would be the same.
+
+```{r ECV}
+ECV <- election_2000 %>%
+  filter(candidate %in%c("BUSH, GEORGE W.","GORE, AL") & state !="District of Columbia") %>% 
+  select(state,candidate,candidatevotes,totalvotes) %>%
+  group_by(state) %>% 
+  mutate(WTall = candidate[which.max(candidatevotes)]) %>% 
+  mutate(bush_prop = case_when(
+      candidate == "BUSH, GEORGE W." ~ candidatevotes / totalvotes,TRUE ~NA_real_),
+      gore_prop = 1-bush_prop) %>%
+  ungroup() %>% group_by(WTall) %>% 
+  mutate(national_cand_votes = sum(candidatevotes)) %>% 
+  ungroup() %>% 
+  mutate(total_national_votes = sum(candidatevotes)) %>% 
+  group_by(WTall) %>% 
+  mutate(national_prop = (national_cand_votes/total_national_votes)) %>% 
+  ungroup()
+
+ECV <- ECV %>% 
+  select(-candidate) %>% 
+  filter(!is.na(bush_prop) &!is.na(gore_prop)) %>% 
+  distinct(state, .keep_all = TRUE) %>% 
+  mutate(bush_WTall = sum(WTall == "BUSH, GEORGE W."),
+         gore_WTall = sum(WTall == "GORE, AL")) %>% 
+  mutate(bush_state_prop_win = case_when(bush_prop>gore_prop ~1,is.na(bush_prop) ~ NA_real_, TRUE~0)) %>% 
+  mutate(num_SPW_bush =case_when(bush_state_prop_win ==1 ~ sum(bush_state_prop_win ==1),TRUE~NA_real_),#state proportional wins
+         num_SPW_gore = case_when(bush_state_prop_win == 0 ~ sum(bush_state_prop_win ==0), TRUE~ NA_real_)) %>% 
+  select(-1,-2,-3, -bush_prop, -gore_prop, -bush_state_prop_win) %>% 
+  distinct(WTall,.keep_all = TRUE) %>% 
+  rename(cand = WTall) %>%
+  DT::datatable()
+ECV
 ```

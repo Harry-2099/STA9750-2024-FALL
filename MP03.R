@@ -16,6 +16,8 @@ setwd("~/R/Project_0/")
 #     as.data.frame(readr::read_tsv(fname_ext, lazy=FALSE))
 # }
 
+#citation
+#MIT Election Data and Science Lab. (2017). U.S. President 1976–2020 [Data set, version 8]. Harvard Dataverse. https://doi.org/10.7910/DVN/42MVDX
 
 ### DATA ONE 
 house_votes <- read_csv("~/R/Project_0/1976-2022-house (1).csv")
@@ -158,7 +160,6 @@ house_winners <- house_votes %>%
   select(year,party,state,state_fips,district,cong_votes,cong_winner) %>% 
   ungroup()
 
-pres_vs_house <- 
  
 pres %>% 
   inner_join(house_winners, by = c("state_fips","party_detailed" = "party","state","year")) %>% 
@@ -327,6 +328,10 @@ ECV <- ECV %>%
   distinct(WTall,.keep_all = TRUE) %>% 
   rename(cand = WTall) %>%
   DT::datatable()
+ECV
+
+
+
 ECV
 
 data(World, metro)
