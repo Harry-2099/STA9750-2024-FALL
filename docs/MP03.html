@@ -167,10 +167,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="set-up-and-initial-exploration" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-and-initial-exploration"><strong>Set-Up and Initial Exploration</strong></h2>
-<p>In this analysis, in honor of election season this year we will take a look at some trends in the political landscape of the United States. in order to do this we will need some reliable data sources on which we can base out analysis. This includes historical election results and also, some cruical shape files for visualizations. Sources include the MIT election lab as well US Census TIGER shape files.</p>
+<p>In this analysis, in honor of election season this year we will take a look at some trends in the political landscape of the United States. in order to do this we will need some reliable data sources on which we can base out analysis. This includes historical election results and also, some crucial shape files for visualizations. Sources include the MIT election lab as well US Census TIGER shape files.</p>
 <section id="task-1-2" class="level3">
 <h3 class="anchored" data-anchor-id="task-1-2">Task 1 &amp; 2</h3>
-<p>In order to properly and effecently work with the data we must automate the download process, considering there a mulitple files that need to downloaded. Using a for loop and using the variable format method <code>sprintf</code> we can automate the download of each file dynamically accounting for i. In the second download we use if else statements to account for the changes in the URLs.</p>
+<p>In order to properly and efficiently work with the data we must automate the download process, considering there a multiple files that need to downloaded. Using a for loop and using the variable format method <code>sprintf</code> we can automate the download of each file dynamically accounting for i. In the second download we use if else statements to account for the changes in the URLs.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -592,7 +592,7 @@ Animation saved to /Users/harry/R/Project_0/anim_map.gif </code></pre>
 </section>
 <section id="task-7-electoral-method-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="task-7-electoral-method-analysis">Task 7: Electoral Method Analysis</h3>
-<p>In this section we am to understand how the different methods can effect the out come of the presidential election. For this section my code is quite long so I wont go into details of each part of the code, but essentially Ive computed the winners based on each method and displayed the results in a <code>dt::datatable()</code>. With WTall representing Winner take all and SPW representing the State Proportional Wins we can see how the candidates differ. If we were to select a candidate based on National Candidate Votes you can see that we would have had a different president in 2000. Based on number of Winner Take all and SPW, however the results would be the same.</p>
+<p>In this section we am to understand how the different methods can effect the out come of the presidential election. For this section my code is quite long so I wont go into details of each part of the code, but essentially Ive computed the winners based on each method and displayed the results in a <code>dt::datatable()</code>. With WTall representing Winner take all and SPW representing the State Proportional Wins we can see how the candidates differ. If we were to select a candidate based on National Candidate Votes you can see that we would have had a different president in 2000.However, based on number of Winner Take all and SPW, the results would be the same.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>

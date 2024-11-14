@@ -8,11 +8,11 @@ cache: true
 
 ## **Set-Up and Initial Exploration**
 
-In this analysis, in honor of election season this year we will take a look at some trends in the political landscape of the United States. in order to do this we will need some reliable data sources on which we can base out analysis. This includes historical election results and also, some cruical shape files for visualizations. Sources include the MIT election lab as well US Census TIGER shape files.
+In this analysis, in honor of election season this year we will take a look at some trends in the political landscape of the United States. in order to do this we will need some reliable data sources on which we can base out analysis. This includes historical election results and also, some crucial shape files for visualizations. Sources include the MIT election lab as well US Census TIGER shape files.
 
 ### Task 1 & 2
 
-In order to properly and effecently work with the data we must automate the download process, considering there a mulitple files that need to downloaded. Using a for loop and using the variable format method `sprintf` we can automate the download of each file dynamically accounting for i. In the second download we use if else statements to account for the changes in the URLs.
+In order to properly and efficiently work with the data we must automate the download process, considering there a multiple files that need to downloaded. Using a for loop and using the variable format method `sprintf` we can automate the download of each file dynamically accounting for i. In the second download we use if else statements to account for the changes in the URLs.
 
 ```{r setup libs, include=FALSE}
 library(dplyr)
@@ -307,7 +307,7 @@ knitr::include_graphics("anim_map.gif")
 
 ### Task 7: Electoral Method Analysis
 
-In this section we am to understand how the different methods can effect the out come of the presidential election. For this section my code is quite long so I wont go into details of each part of the code, but essentially Ive computed the winners based on each method and displayed the results in a `dt::datatable()`. With WTall representing Winner take all and SPW representing the State Proportional Wins we can see how the candidates differ. If we were to select a candidate based on National Candidate Votes you can see that we would have had a different president in 2000. Based on number of Winner Take all and SPW, however the results would be the same.
+In this section we am to understand how the different methods can effect the out come of the presidential election. For this section my code is quite long so I wont go into details of each part of the code, but essentially Ive computed the winners based on each method and displayed the results in a `dt::datatable()`. With WTall representing Winner take all and SPW representing the State Proportional Wins we can see how the candidates differ. If we were to select a candidate based on National Candidate Votes you can see that we would have had a different president in 2000.However, based on number of Winner Take all and SPW, the results would be the same.
 
 ```{r ECV}
 ECV <- election_2000 %>%
@@ -341,3 +341,7 @@ ECV <- ECV %>%
   DT::datatable()
 ECV
 ```
+
+#### Citation
+
+MIT Election Data and Science Lab. (2017). U.S. President 1976–2020 \[Data set, version 8\]. Harvard Dataverse. <https://doi.org/10.7910/DVN/42MVDX>
