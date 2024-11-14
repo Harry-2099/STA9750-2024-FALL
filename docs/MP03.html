@@ -524,14 +524,15 @@ Attaching package: 'cowplot'</code></pre>
 </section>
 <section id="task-6-animating-party-changes-in-states-during-presidential-elections" class="level3">
 <h3 class="anchored" data-anchor-id="task-6-animating-party-changes-in-states-during-presidential-elections">Task 6: Animating Party Changes in States During Presidential Elections</h3>
-<p>In this task we can use the <code>tmap</code> package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians). This graph is great representation of the “swing states” that we always hear being talked about and the effect the north east states have when they swing.</p>
+<p>In this task we can use the <code>tmap</code> package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians). This graph is great representation of the “swing states” that we always hear being talked, as we see clearly some states will stay stay blue or stay red and others will constantly change. Another great insight from this time lapsed data is the ever changing trends in the political landscape. It might be obvious that party preferences differ every year in America but at times it can be hard to step outside current time frame and realize this is just a moment in a space where preferences are always shifting, and that feeling of “America is becoming all <em>right”</em> or”America is becoming all <em>left”</em> is simply not true.</p>
+<p>In 1980 and 1984 you can see that the whole of America was pretty much red. If you were around for those two elections I’m sure it would feel as though there is some paradigm shift in America, but If you wait a bit you can see the rise in blue states, and again if you wait a bit longer you can see that red makes a come back. These trends come in waves, as the data shows, and no matter how much it feels as though one party is has lost touch with America forever, sure enough there will be a comeback.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tools)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>parties <span class="ot">&lt;-</span> pres <span class="sc">%&gt;%</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state =</span> <span class="fu">toTitleCase</span>(<span class="fu">tolower</span>(state))) <span class="sc">%&gt;%</span> </span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(state <span class="sc">!=</span><span class="st">"Hawaii"</span> <span class="sc">&amp;</span> state <span class="sc">!=</span> <span class="st">"Alaska"</span> <span class="sc">&amp;</span> year <span class="sc">&gt;=</span> <span class="dv">2008</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(state <span class="sc">!=</span><span class="st">"Hawaii"</span> <span class="sc">&amp;</span> state <span class="sc">!=</span> <span class="st">"Alaska"</span> <span class="sc">&amp;</span> year <span class="sc">&gt;=</span> <span class="dv">1980</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(bushVgore, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"state"</span><span class="ot">=</span><span class="st">"NAME"</span>)) <span class="sc">%&gt;%</span> <span class="co">#bushvgore is the shape file</span></span>
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(state,year) <span class="sc">%&gt;%</span></span>
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state_winner =</span> party_detailed[<span class="fu">which.max</span>(candidatevotes)]) <span class="sc">%&gt;%</span></span>
@@ -539,47 +540,26 @@ Attaching package: 'cowplot'</code></pre>
 <span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="do">### facetmap</span></span>
 <span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="do">###ANIMATING THE FACET</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>anim <span class="ot">&lt;-</span> parties <span class="sc">%&gt;%</span> </span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">&gt;=</span> <span class="dv">1980</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>() <span class="sc">+</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"state_winner"</span>, <span class="at">title =</span> <span class="st">"Party"</span>, </span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">palette =</span> <span class="fu">c</span>(<span class="st">"REPUBLICAN"</span> <span class="ot">=</span> <span class="st">"red"</span>, </span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"DEMOCRAT"</span> <span class="ot">=</span> <span class="st">"blue"</span>,</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"DEMOCRATIC-FARMER-LABOR"</span> <span class="ot">=</span> <span class="st">"lightblue"</span>)) <span class="sc">+</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_facets</span>(<span class="at">along =</span> <span class="st">"year"</span>, <span class="at">free.coords =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_text</span>(<span class="st">"state_po"</span>, <span class="at">size =</span> .<span class="dv">3</span>, <span class="at">col =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>)</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a> <span class="co">#tmap_animation(anim, delay = 100,"anim_map.gif")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
 </div>
+<div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="do">###ANIMATING THE FACET</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>anim <span class="ot">&lt;-</span> parties <span class="sc">%&gt;%</span> </span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">&gt;=</span> <span class="dv">2000</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>() <span class="sc">+</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"state_winner"</span>, <span class="at">title =</span> <span class="st">"Party"</span>, </span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">palette =</span> <span class="fu">c</span>(<span class="st">"REPUBLICAN"</span> <span class="ot">=</span> <span class="st">"red"</span>, </span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"DEMOCRAT"</span> <span class="ot">=</span> <span class="st">"blue"</span>,</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"DEMOCRATIC-FARMER-LABOR"</span> <span class="ot">=</span> <span class="st">"lightblue"</span>)) <span class="sc">+</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_facets</span>(<span class="at">along =</span> <span class="st">"year"</span>, <span class="at">free.coords =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_text</span>(<span class="st">"state_po"</span>, <span class="at">size =</span> .<span class="dv">3</span>, <span class="at">col =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>)</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a> <span class="fu">tmap_animation</span>(anim, <span class="at">delay =</span> <span class="dv">50</span>,<span class="st">"anim_map.gif"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Creating frames</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>========================================</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>====================</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>====================</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Creating animation
-Animation saved to /Users/harry/R/Project_0/anim_map.gif </code></pre>
-</div>
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"anim_map.gif"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"anim_map.gif"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -596,36 +576,36 @@ Animation saved to /Users/harry/R/Project_0/anim_map.gif </code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>ECV <span class="ot">&lt;-</span> election_2000 <span class="sc">%&gt;%</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(candidate <span class="sc">%in%</span><span class="fu">c</span>(<span class="st">"BUSH, GEORGE W."</span>,<span class="st">"GORE, AL"</span>) <span class="sc">&amp;</span> state <span class="sc">!=</span><span class="st">"District of Columbia"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(state,candidate,candidatevotes,totalvotes) <span class="sc">%&gt;%</span></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(state) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">WTall =</span> candidate[<span class="fu">which.max</span>(candidatevotes)]) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_prop =</span> <span class="fu">case_when</span>(</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>      candidate <span class="sc">==</span> <span class="st">"BUSH, GEORGE W."</span> <span class="sc">~</span> candidatevotes <span class="sc">/</span> totalvotes,<span class="cn">TRUE</span> <span class="sc">~</span><span class="cn">NA_real_</span>),</span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">gore_prop =</span> <span class="dv">1</span><span class="sc">-</span>bush_prop) <span class="sc">%&gt;%</span></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(WTall) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">national_cand_votes =</span> <span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_national_votes =</span> <span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(WTall) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">national_prop =</span> (national_cand_votes<span class="sc">/</span>total_national_votes)) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>ECV <span class="ot">&lt;-</span> ECV <span class="sc">%&gt;%</span> </span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>candidate) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(bush_prop) <span class="sc">&amp;!</span><span class="fu">is.na</span>(gore_prop)) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(state, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_WTall =</span> <span class="fu">sum</span>(WTall <span class="sc">==</span> <span class="st">"BUSH, GEORGE W."</span>),</span>
-<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">gore_WTall =</span> <span class="fu">sum</span>(WTall <span class="sc">==</span> <span class="st">"GORE, AL"</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_state_prop_win =</span> <span class="fu">case_when</span>(bush_prop<span class="sc">&gt;</span>gore_prop <span class="sc">~</span><span class="dv">1</span>,<span class="fu">is.na</span>(bush_prop) <span class="sc">~</span> <span class="cn">NA_real_</span>, <span class="cn">TRUE</span><span class="sc">~</span><span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">num_SPW_bush =</span><span class="fu">case_when</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">1</span> <span class="sc">~</span> <span class="fu">sum</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">1</span>),<span class="cn">TRUE</span><span class="sc">~</span><span class="cn">NA_real_</span>),<span class="co">#state proportional wins</span></span>
-<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">num_SPW_gore =</span> <span class="fu">case_when</span>(bush_state_prop_win <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="fu">sum</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">0</span>), <span class="cn">TRUE</span><span class="sc">~</span> <span class="cn">NA_real_</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">2</span>,<span class="sc">-</span><span class="dv">3</span>, <span class="sc">-</span>bush_prop, <span class="sc">-</span>gore_prop, <span class="sc">-</span>bush_state_prop_win) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(WTall,<span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">cand =</span> WTall) <span class="sc">%&gt;%</span></span>
-<span id="cb29-29"><a href="#cb29-29" aria-hidden="true" tabindex="-1"></a>  DT<span class="sc">::</span><span class="fu">datatable</span>()</span>
-<span id="cb29-30"><a href="#cb29-30" aria-hidden="true" tabindex="-1"></a>ECV</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ECV <span class="ot">&lt;-</span> election_2000 <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(candidate <span class="sc">%in%</span><span class="fu">c</span>(<span class="st">"BUSH, GEORGE W."</span>,<span class="st">"GORE, AL"</span>) <span class="sc">&amp;</span> state <span class="sc">!=</span><span class="st">"District of Columbia"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(state,candidate,candidatevotes,totalvotes) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(state) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">WTall =</span> candidate[<span class="fu">which.max</span>(candidatevotes)]) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_prop =</span> <span class="fu">case_when</span>(</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>      candidate <span class="sc">==</span> <span class="st">"BUSH, GEORGE W."</span> <span class="sc">~</span> candidatevotes <span class="sc">/</span> totalvotes,<span class="cn">TRUE</span> <span class="sc">~</span><span class="cn">NA_real_</span>),</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">gore_prop =</span> <span class="dv">1</span><span class="sc">-</span>bush_prop) <span class="sc">%&gt;%</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(WTall) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">national_cand_votes =</span> <span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_national_votes =</span> <span class="fu">sum</span>(candidatevotes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(WTall) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">national_prop =</span> (national_cand_votes<span class="sc">/</span>total_national_votes)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>ECV <span class="ot">&lt;-</span> ECV <span class="sc">%&gt;%</span> </span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>candidate) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(bush_prop) <span class="sc">&amp;!</span><span class="fu">is.na</span>(gore_prop)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(state, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_WTall =</span> <span class="fu">sum</span>(WTall <span class="sc">==</span> <span class="st">"BUSH, GEORGE W."</span>),</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">gore_WTall =</span> <span class="fu">sum</span>(WTall <span class="sc">==</span> <span class="st">"GORE, AL"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bush_state_prop_win =</span> <span class="fu">case_when</span>(bush_prop<span class="sc">&gt;</span>gore_prop <span class="sc">~</span><span class="dv">1</span>,<span class="fu">is.na</span>(bush_prop) <span class="sc">~</span> <span class="cn">NA_real_</span>, <span class="cn">TRUE</span><span class="sc">~</span><span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">num_SPW_bush =</span><span class="fu">case_when</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">1</span> <span class="sc">~</span> <span class="fu">sum</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">1</span>),<span class="cn">TRUE</span><span class="sc">~</span><span class="cn">NA_real_</span>),<span class="co">#state proportional wins</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">num_SPW_gore =</span> <span class="fu">case_when</span>(bush_state_prop_win <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="fu">sum</span>(bush_state_prop_win <span class="sc">==</span><span class="dv">0</span>), <span class="cn">TRUE</span><span class="sc">~</span> <span class="cn">NA_real_</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">2</span>,<span class="sc">-</span><span class="dv">3</span>, <span class="sc">-</span>bush_prop, <span class="sc">-</span>gore_prop, <span class="sc">-</span>bush_state_prop_win) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(WTall,<span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">cand =</span> WTall) <span class="sc">%&gt;%</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>  DT<span class="sc">::</span><span class="fu">datatable</span>()</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>ECV</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div class="datatables html-widget html-fill-item" id="htmlwidget-98e5423eaf7ab4543d1f" style="width:100%;height:auto;"></div>

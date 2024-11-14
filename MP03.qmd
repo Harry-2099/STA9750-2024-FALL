@@ -274,13 +274,15 @@ ggdraw()+
 
 ### Task 6: Animating Party Changes in States During Presidential Elections
 
-In this task we can use the `tmap` package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians). This graph is great representation of the "swing states" that we always hear being talked about and the effect the north east states have when they swing.
+In this task we can use the `tmap` package to create an animated plot of party changes across time. For simplicity sake I have left out the 2 states previously mentioned (my apologizes to the Alaskans and Hawaiians). This graph is great representation of the "swing states" that we always hear being talked, as we see clearly some states will stay stay blue or stay red and others will constantly change. Another great insight from this time lapsed data is the ever changing trends in the political landscape. It might be obvious that party preferences differ every year in America but at times it can be hard to step outside current time frame and realize this is just a moment in a space where preferences are always shifting, and that feeling of "America is becoming all *right"* or "America is becoming all *left"* is simply not true.
 
-```{r animated plot}
+In 1980 and 1984 you can see that the whole of America was pretty much red. If you were around for those two elections I'm sure it would feel as though there is some paradigm shift in America, but If you wait a bit you can see the rise in blue states, and again if you wait a bit longer you can see that red makes a come back. These trends come in waves, as the data shows, and no matter how much it feels as though one party is has lost touch with America forever, sure enough there will be a comeback.
+
+```{r animated plot, message=FALSE, warning=FALSE}
 library(tools)
 parties <- pres %>%
   mutate(state = toTitleCase(tolower(state))) %>% 
-  filter(state !="Hawaii" & state != "Alaska" & year >= 2008) %>% 
+  filter(state !="Hawaii" & state != "Alaska" & year >= 1980) %>% 
   inner_join(bushVgore, by = c("state"="NAME")) %>% #bushvgore is the shape file
   group_by(state,year) %>%
   mutate(state_winner = party_detailed[which.max(candidatevotes)]) %>%
@@ -291,7 +293,7 @@ library(tmap)
 tmap_mode("plot")
 ###ANIMATING THE FACET
 anim <- parties %>% 
-  filter(year >= 2000) %>% 
+  filter(year >= 1980) %>% 
   st_as_sf() %>% 
   tm_shape() +
   tm_polygons("state_winner", title = "Party", 
@@ -301,7 +303,10 @@ anim <- parties %>%
   tm_facets(along = "year", free.coords = FALSE)+
   tm_text("state_po", size = .3, col = "white", fontface = "bold")
  
- tmap_animation(anim, delay = 50,"anim_map.gif")
+ #tmap_animation(anim, delay = 100,"anim_map.gif")
+```
+
+```{r attach plot}
 knitr::include_graphics("anim_map.gif")
 ```
 
