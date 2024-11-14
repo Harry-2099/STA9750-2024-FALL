@@ -14,7 +14,7 @@ In this analysis, in honor of election season this year we will take a look at s
 
 In order to properly and efficiently work with the data we must automate the download process, considering there a multiple files that need to downloaded. Using a for loop and using the variable format method `sprintf` we can automate the download of each file dynamically accounting for i. In the second download we use if else statements to account for the changes in the URLs.
 
-```{r setup libs, include=FALSE}
+```{r setup libs, include=FALSE, message= FALSE}
 library(dplyr)
 library(tidyr)
 library(tidyverse)
@@ -22,7 +22,7 @@ library(stringr)
 setwd("~/R/Project_0/")
 ```
 
-```{r  download 1,results = "hide"}
+```{r  download 1,results = "hide",message= FALSE}
 ### DATA ONE 
 house_votes <- read_csv("1976-2022-house (1).csv")
 pres <- read_csv("1976-2020-president.csv")
@@ -43,7 +43,7 @@ for (i in 94:112) {
 }
 ```
 
-```{r download 2 }
+```{r download 2 ,message= FALSE}
 
 for (i in 2014:2022) {
   BASE_URL <- "https://www2.census.gov/geo/tiger/"
@@ -174,7 +174,7 @@ pres %>%
 
 When it is necessary to repeat a process over and over again it might be beneficial to create a function that is written once and can be used quickly again, or even automated. In this case we will make a function that can take any zip file, and receive its shape file. See below with a download and unzip along with a quick plot of the boroughs.
 
-```{r shape zip}
+```{r shape zip, message= FALSE, warning=FALSE}
 
 library(sf)
 
@@ -210,7 +210,7 @@ Using some of the methods previously stated and a new method I will introduce sh
 
 This new method involves using a `cowplot` that allows us to `ggdraw` multiple different plots over each other. This will be very beneficial when plotting the US because the geographic locations of Hawaii and Alaska make a simple plot extremely ugly. This process involves filtering out the 2 states and creating a "main" plot as seen in the code below, and then plotting those 2 states separately. Once this is done we can use the `ggdraw` function to join them all together and tinker with the x, y, width, and height to get a nice looking plot (note: 0 is the center)
 
-```{r bush vs gore, warning= FALSE}
+```{r bush vs gore, warning= FALSE,message= FALSE}
 library(tools)
 bushVgore <- unzip_shape("tl_2023_us_state.zip")
 
