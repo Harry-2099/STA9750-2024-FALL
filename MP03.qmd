@@ -118,7 +118,7 @@ seats_won %>% group_by(year,party) %>%
 
 ### Fusion Fusses
 
-In the state of New York, there is a fusion ticket system that allows for candidates to be put under more than one party line. This creates an interesting dynamic that allows for candidates to win even though they did not have the max number of votes in their respective parties. We see below that as a matter a fact, multiple times the candidate with the highest single party votes does not always win due to the fusion system.
+In the state of New York, there is a fusion ticket system that allows for candidates to be put under more than one party line. This creates an interesting dynamic that allows for candidates to win even though they did not have the max number of votes in their respective parties. In order to solve this problem we will first compute who actually won the district, and then compute who had the highest single party votes. In non-fusion system there would be only one party allowed per candidate, so we can assume that the candidate with the highest single party votes would have won. After computing those two values (see code below), we return a table where the highest single party votes does not match the actual winner. We see below that as a matter a fact, multiple times the candidate with the highest single party votes does not always win due to the fusion system.
 
 ```{r fusions}
 fusion <- house_votes %>% 
