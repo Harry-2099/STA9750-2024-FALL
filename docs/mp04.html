@@ -177,7 +177,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>FRED_key <span class="ot">&lt;-</span> <span class="fu">readLines</span>(<span class="st">"~/R/Project_0/FRED_key.txt"</span>)</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>FRED_key <span class="ot">&lt;-</span> <span class="fu">readLines</span>(<span class="st">"FRED_key.txt"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>get_fred<span class="ot">&lt;-</span> <span class="cf">function</span>(id){</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  base_url <span class="ot">&lt;-</span> <span class="st">"https://api.stlouisfed.org/fred/series/observations?series_id="</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="fu">paste0</span>(base_url,id,<span class="st">"&amp;api_key="</span>,FRED_key,<span class="st">"&amp;file_type=json"</span>))</span>
@@ -188,7 +188,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                          <span class="at">date =</span> <span class="fu">as.Date</span>(date))</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(data)</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>AV_key <span class="ot">&lt;-</span> <span class="fu">readLines</span>(<span class="st">"~/R/Project_0/Alphavantage_key.txt"</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>AV_key <span class="ot">&lt;-</span> <span class="fu">readLines</span>(<span class="st">"Alphavantage_key.txt"</span>)</span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>GET_AV <span class="ot">&lt;-</span> <span class="cf">function</span>(ticker){</span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  </span>
