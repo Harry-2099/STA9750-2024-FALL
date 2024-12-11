@@ -12,7 +12,7 @@ library(tmap)
 library(sf)
 library(RColorBrewer)
 library(tidycensus,tidyverse)
-census_api_key("37c6251bf49ce45381267b45c7ce1149844ac8ce",install = TRUE)
+
 acs_vars <- load_variables(2022, "acs5", cache = TRUE)
 unemployed<- acs_vars %>% filter(grepl(".unemployed.*",label, ignore.case = TRUE))
 
@@ -496,7 +496,7 @@ gender_anim <-demo_long %>%
   shadow_mark()+# shadow mark allows the dots to stay on the plot in stead of disappering and looking stupid
   labs(y = "Unemploment Rate",x = "Date", color = "Gender")+
   ggtitle("Unemployment by Gender: {frame_time}")
-
+#gender_anim
 education_anim <- demo_long %>%
   filter(demographic %in% education) %>%
   ggplot(aes(x = Date, y = unemployment_rate, color = demographic)) +
