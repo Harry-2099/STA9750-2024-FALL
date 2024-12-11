@@ -1,0 +1,153 @@
+---
+title: "Groups Most Effected by Unemployment"
+author: "Harry Sohal"
+editor: visual
+code-fold: true
+cache: true
+---
+
+## What Demographic Groups are Most Impacted by Unemployment?
+
+In this section, I will delve into the demographic groups most impacted by unemployment, drawing connections to the broader unemployment landscape in New York. Specifically, I will examine key demographic categories such as Race and Educational Attainment while investigating potential underlying factors that may serve as root causes influencing these variables. This analysis aims to uncover deeper insights into the socioeconomic dynamics shaping unemployment trends in the region.
+
+### Gathering the Data:
+
+The first step in any analysis will be to gather some data that is reliable and obviously allows us to study the topic of interest. There are many sources of data that could be used, here but for the first part of this analysis I will use a dataset from kaggle that contains Unemployment by Demographic and Year. This data set can be found [here](https://www.kaggle.com/datasets/aniruddhasshirahatti/us-unemployment-dataset-2010-2020). The choice for this data mainly revolved around the fact that it all the variable needed to study this topic, without having to search and merge multiple different sources. Some other sources like the Census will be used in later sections.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(httr)
+library(jsonlite)
+library(dplyr)
+library(tidyverse,ggplot2)
+library(janitor)
+library(tidygeocoder)
+library(tools)
+library(leaflet)
+library(tmap)
+library(sf)
+library(RColorBrewer)
+library(tidycensus,tidyverse)
+library(lubridate)
+library(gganimate)
+
+```
+
+### Loading the Data:
+
+```{r,load data}
+by_demo <- read_csv("unemployment_data_us.csv") %>% 
+  mutate(Date = my(Date)) %>% 
+  select(-Month,-Year) %>% 
+  drop_na()
+
+```
+
+Now that the data is loaded to understand the relationship between demographics and unemployment we need to transform the data in to a long format so that it allows us to quickly plot and analyze each group using grouping methods.
+
+```{r,long}
+demo_long <- by_demo %>%
+  pivot_longer(cols = -Date,
+               names_to = "demographic",
+               values_to = "unemployment_rate")
+
+```
+
+Now that we have the data in the correct format lets initialize some demographic types in variables that will allow us to separate the demographics into wider groups like race in education so that we can analyze these groups efficiently.
+
+```{r, init demo variables}
+race <- c("Asian","Black","Hispanic","White")
+gender <-c("Men","Women")
+education <- c("High_School","Primary_School","Professional_Degree","Associates_Degree")
+```
+
+Now we can see what these variables look like over time. Lets start with Race.
+
+```{r, race anim}
+race_anim<-demo_long %>%
+  filter(demographic %in% race) %>%
+  ggplot(aes(x = Date, y = unemployment_rate, color = demographic)) +
+  geom_point()+
+  theme_minimal()+
+  transition_time(Date)+
+  shadow_mark()+
+  labs(y = "Unemploment Rate",x = "Date", color = "Race")+
+  ggtitle("Unemployment by Race: {frame_time}")
+race_anim
+```
+
+As you can see there is an overall decrease in Unemployment over time with a slight hint at upward movement at the year 2020 (COVID -19 bump). We can also see that there are certain races that start, and stay higher all the way to the end of the timeline. Specifically the Black group, with the Hispanic group underneath it but still higher than the rest. Another interesting point from this graphic is how straight and narrow the line for White race is, especially when compared to spread of the other groups which seem to form a thick band. Lets take a look at the spread numerically.
+
+```{r, race sd}
+Euclidean_Dist <- function(x, y) {
+  sqrt((as.numeric(x) - as.numeric(lead(x)))^2 + (y - lead(y))^2)
+}
+
+# Apply this function across the entire 'Date' and 'unemployment_rate' columns
+demo_long %>% 
+  filter(demographic %in% race) %>%
+  group_by(demographic) %>% 
+  mutate(
+    Euclidean_Distances = Euclidean_Dist(Date, unemployment_rate)
+  ) %>%
+  summarise("Average Euclidean Distance" = mean(Euclidean_Distances, na.rm = TRUE)) %>%
+  rename(Race = demographic) %>% 
+  arrange(desc("Average Euclidean Distance")) %>% 
+  DT::datatable()
+
+```
+
+Looks like there all about the same, but it does some difference that corresponds with the spread on the plot.Now lets look at some other variables. Below we have gender variable.
+
+```{r,gender}
+gender_anim <-demo_long %>%
+  filter(demographic %in% gender) %>%
+  ggplot(aes(x = Date, y = unemployment_rate, color = demographic)) +
+  geom_point()+
+  theme_minimal()+
+  transition_time(Date)+
+  shadow_mark()+# shadow mark allows the dots to stay on the plot in stead of disappering and looking stupid
+  labs(y = "Unemploment Rate",x = "Date", color = "Gender")+
+  ggtitle("Unemployment by Gender: {frame_time}")
+
+gender_anim
+```
+
+As you can see from this plot the Male scatter starts at a higher intercept and converges into the same scatter. This is an interesting output as one would conventionally assume that women would face more adversity in the workplace.
+
+Next we look at the education variable:
+
+```{r, education anim}
+education_anim <- demo_long %>%
+  filter(demographic %in% education) %>%
+  ggplot(aes(x = Date, y = unemployment_rate, color = demographic)) +
+  geom_point()+
+  theme_minimal()+
+  transition_time(Date)+
+  shadow_mark()+
+  labs(y = "Unemploment Rate",x = "Date", color = "Education")+
+  ggtitle("Unemployment by Education: {frame_time}")
+education_anim
+```
+
+Here we see interestingly, that as expected the lower education groups have a higher unemployment, but as the time goes on they get closer and closer. While this shows us that unemployment is still quite different among educational groups, we see that over the time the difference might be fading, indicating that there might be more opportunities now for people with less educational attainment.
+
+Next well look at the averages of all the groups side by side.
+
+```{r, demo bar }
+
+my_theme <- theme_minimal()+
+   theme(axis.title.x = element_text(face = "bold.italic", size = 12),  
+    axis.title.y = element_text(face = "bold.italic", size = 12))
+
+
+
+avg_rate <- demo_long %>% group_by(demographic) %>% reframe(Average = mean(unemployment_rate))
+avg_rate %>% 
+  ggplot(aes(x = demographic, y = Average))+
+  geom_bar(stat = "identity",color = "blue",fill = "lightblue")+
+  my_theme+
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+We see above that Race, in this case black, and Education (primary school) have the highest average unemployment rate. The fact that these two are the highest leads me to believe that their might be a correlation here and perhaps, education is the true underlying factor here that is driving these other groups to have higher levels of unemployment. Lets take look at some more data to see if that is the case.
