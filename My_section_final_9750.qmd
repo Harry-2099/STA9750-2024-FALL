@@ -34,7 +34,7 @@ library(gganimate)
 
 ### Loading the Data:
 
-```{r,load data}
+```{r,load data,message=FALSE}
 by_demo <- read_csv("unemployment_data_us.csv") %>% 
   mutate(Date = my(Date)) %>% 
   select(-Month,-Year) %>% 
@@ -150,4 +150,183 @@ avg_rate %>%
 
 ```
 
-We see above that Race, in this case black, and Education (primary school) have the highest average unemployment rate. The fact that these two are the highest leads me to believe that their might be a correlation here and perhaps, education is the true underlying factor here that is driving these other groups to have higher levels of unemployment. Lets take look at some more data to see if that is the case.
+We see above that Race, in this case black, and Education (primary school) have the highest average unemployment rate. The fact that these two are the highest leads me to believe that their might be a correlation here and perhaps, education is the true underlying factor here that is driving these other groups to have higher levels of unemployment. Lets compare some more data to see the overlap.
+
+### Exploring the Census Variables
+
+The Census has a vast amount of information across many different demographic groups economic factors. To search for the variables we will need to use the load variables feature to see all of the variables that the census offers and filter for the ones that we need. This will be done using `filter` in combination with `grepl`.
+
+```{r}
+#load the variables 
+acs_vars <- load_variables(2022, "acs5", cache = TRUE)
+#filter for demographics
+acs_vars %>% 
+  filter(grepl("C15002",name) & grepl(".*Bachelor.*", label, ignore.case = TRUE)) %>%   DT::datatable()
+```
+
+Now this allows us to see all the variables we are interested in filtering for the first part of the education code and the filtering further for only bachelors degrees. Now we can get the data for the groups we are interested in. Here I will look at the number of men in each race with at least a bachelors degree. After obtaining that we can we filter down the for the boroughs, and make a proportion of at least a bachelors degree using the races respective total population.
+
+First we can initialize the counties we need to filter for. Later on to filter, we will use the `grepl` function and the "or" operator. In this case the simple filter and `%in%` method doesn't work here so we'll use this more dynamic `grepl` method shown below. Now we can get the data from census and apply the pipeline.
+
+```{r, census data and bachelor filter,message=FALSE}
+#GETTING DATA
+
+borroughs <-c(
+"Kings County",
+"Bronx County",
+"New York County",
+"Queens County",
+'Richmond County')
+
+census_api_key(readLines("census_key.txt"))
+year = "2023"
+edu_black <- get_acs(
+  geography = "county",
+  state = "NY",
+  variables = "C15002B_006",
+  year =  year ,
+  survey = "acs1")
+
+edu_white <- get_acs(
+  geography = "county",
+  state = "NY",
+  variables = "C15002A_006",
+  year =  year ,
+  survey = "acs1")
+
+edu_latino <- get_acs(
+  geography = "county",
+  state = "NY",
+  variables = "C15002I_006",
+  year =  year ,
+  survey = "acs1")
+
+#START THE PIPLINING  
+edu_latino_total <- edu_latino %>%
+  mutate(County = sub(", .*", "", NAME)) %>%# get into county only format
+  drop_na() %>%  
+  filter(grepl(paste(borroughs, collapse = "|"),County)) %>% #use county list to filter 
+  summarise(Latino = sum(estimate)/2.4e6)
+ 
+ edu_white_total <- edu_white %>% 
+   drop_na() %>%  
+  mutate(County= sub(", .*","",NAME)) %>% 
+   drop_na() %>% 
+   filter(grepl(paste(borroughs, collapse = "|"),County)) %>% 
+   summarise(White= sum(estimate)/2.8e6)
+ 
+ edu_black_total <- edu_black %>% 
+   drop_na() %>%
+   mutate(County= sub(", .*","",NAME)) %>% 
+   drop_na() %>% 
+   filter(grepl(paste(borroughs, collapse = "|"),County)) %>% 
+   summarise(Black = sum(estimate)/1.8e6)
+
+bach_edu_pop <- bind_cols(edu_latino_total, edu_white_total, edu_black_total)
+
+bach_edu_pop <- bach_edu_pop %>%
+  pivot_longer(
+    cols = everything(), 
+    names_to = "Group",   
+    values_to = "Total")
+```
+
+Now we can plot the results.
+
+```{r, bachelors plot}
+
+bach_edu_pop %>% 
+  ggplot(aes(x = Group, y = Total))+
+  geom_bar(stat = "identity",color = "blue",fill = "lightblue")+
+  my_theme+
+  labs(y = "Proportion")+
+  theme(axis.title.x = element_text(size = 16))+
+  theme(axis.text.x = element_text(size = 10,face = "bold"))
+```
+
+You can see that the black and then Latino group is significantly lower the than the White group. This aligns well with the unemployment by race as Black and Latino were the top 2 highest unemployment see above, however black is slightly higher than Latino which was unexpected. Lets see how this comparison looks geographically.
+
+### Geographic Comparison of Race and Education
+
+Similarly from the last section we need to use the census api to get the data. In this section we will get the data for Less than high school graduates and also get the total population data for that we can create a proportion. This way when we create a plot it will not be skewed by the larger populations liklely having larger number of high school drop outs.
+
+```{r,less hs map,message=FALSE,warning=FALSE}
+year = "2023"
+#get less than highschool data
+less_hs_by_geo <- get_acs(
+  geography = "county",
+  state = "NY",
+  variables = "B06009_002",
+  year =  year ,
+  survey = "acs1")
+
+# number of less than highschool level education by geography
+less_HS_GEO <-less_hs_by_geo %>%
+  mutate(County= sub(", .*","",NAME)) %>% 
+  select(-NAME) %>% 
+  filter(grepl(paste(borroughs, collapse = "|"),County))
+
+### get the shape file and join for plotting
+library(sf)
+borrough_shape <-read_sf("nyc_borough_boundaries/geo_export_1b7449ee-3559-48e8-b506-c4147ebf3d4d.shx") %>% 
+  arrange(boro_name)#arrange will allow us to just stack since both are in Alphabetical order
+
+less_HS_GEO <- less_HS_GEO %>% bind_cols(borrough_shape)
+
+# get the total population so that we can do a proportion, and not have the population size effect our results
+total_population <- get_acs(
+  geography = "county",
+  state = "NY",
+  variables = "B01003_001",
+  year = year,
+  survey = "acs1")
+# apply the pipeline to get our counties to the population data
+less_HS_PROP <- total_population %>%
+  mutate(County= sub(", .*","",NAME)) %>% 
+  rename(total_pop = estimate) %>% 
+  select(-NAME,-GEOID,-moe,-variable) %>% 
+  inner_join(less_HS_GEO,by = "County") %>%
+  mutate(prop = estimate/total_pop)#
+#less_HS_PROP
+
+
+less_hs<-ggplot(less_HS_PROP, aes(geometry = geometry, fill = prop))+
+  geom_sf()+
+  geom_sf_text(aes(label = boro_name), size = 2, color = "black",fontface = "bold")+
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(fill = "Proportion of Less then HS Education",title = "Less than High School Degree Attained by Borrough")+
+  theme_void()+
+  theme(legend.position = "bottom",plot.title = element_text(hjust = 0.5,face = "bold.italic",size = 12))
+
+##plot the black population
+black_population <- get_acs(
+  geography = "county",
+  state = "NY",
+  variables = "B01001B_001",
+  year = year,
+  survey = "acs1")
+
+black_population<- black_population %>% 
+  mutate(County= sub(", .*","",NAME)) %>% 
+  select(-NAME) %>% 
+  filter(grepl(paste(borroughs, collapse = "|"),County)) %>% 
+  arrange(County) %>%
+  bind_cols(borrough_shape)
+  
+black_pop<-ggplot(less_HS_PROP, aes(geometry = geometry, fill = estimate))+
+  geom_sf()+
+  geom_sf_text(aes(label = boro_name), size = 2, color = "black",fontface = "bold")+
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(fill = "Population Esitmate",title = "Black Population in NY Boroughs")+
+  theme_void()+
+  theme(legend.position = "FALSE",plot.title = element_text(hjust = 0.5,face = "bold.italic",size = 12))
+
+```
+
+```{r,cowplot,warning=FALSE}
+library(cowplot)
+black_pop_less_hs_pop <- plot_grid(black_pop, less_hs, ncol = 1,nrow = 2)
+black_pop_less_hs_pop
+```
+
+We can see that there are is a good amount of overlap here with the black population and portion of lower education. We can also build a regression model to see which groups are contribute to the unemployment the most.
