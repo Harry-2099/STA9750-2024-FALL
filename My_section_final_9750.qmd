@@ -29,6 +29,7 @@ library(RColorBrewer)
 library(tidycensus,tidyverse)
 library(lubridate)
 library(gganimate)
+census_api_key(readLines("census_key.txt"))
 
 ```
 
@@ -136,9 +137,8 @@ Next well look at the averages of all the groups side by side.
 ```{r, demo bar }
 
 my_theme <- theme_minimal()+
-   theme(axis.title.x = element_text(face = "bold.italic", size = 12),  
-    axis.title.y = element_text(face = "bold.italic", size = 12))
-
+  theme(axis.title.x = element_text(face = "bold", size = 9),  
+    axis.title.y = element_text(face = "bold", size = 9))
 
 
 avg_rate <- demo_long %>% group_by(demographic) %>% reframe(Average = mean(unemployment_rate))
@@ -239,16 +239,14 @@ bach_edu_pop %>%
   ggplot(aes(x = Group, y = Total))+
   geom_bar(stat = "identity",color = "blue",fill = "lightblue")+
   my_theme+
-  labs(y = "Proportion")+
-  theme(axis.title.x = element_text(size = 16))+
-  theme(axis.text.x = element_text(size = 10,face = "bold"))
+  labs(y = "Proportion")
 ```
 
 You can see that the black and then Latino group is significantly lower the than the White group. This aligns well with the unemployment by race as Black and Latino were the top 2 highest unemployment see above, however black is slightly higher than Latino which was unexpected. Lets see how this comparison looks geographically.
 
 ### Geographic Comparison of Race and Education
 
-Similarly from the last section we need to use the census api to get the data. In this section we will get the data for Less than high school graduates and also get the total population data for that we can create a proportion. This way when we create a plot it will not be skewed by the larger populations liklely having larger number of high school drop outs.
+Similarly from the last section we need to use the census api to get the data. In this section we will get the data for Less than high school graduates and also get the total population data for that we can create a proportion. This way when we create a plot it will not be skewed by the larger populations likely having larger number of high school drop outs.
 
 ```{r,less hs map,message=FALSE,warning=FALSE}
 year = "2023"
@@ -330,3 +328,576 @@ black_pop_less_hs_pop
 ```
 
 We can see that there are is a good amount of overlap here with the black population and portion of lower education. We can also build a regression model to see which groups are contribute to the unemployment the most.
+
+### Regression Analysis
+
+In this section I'll aim to build a model, with my build off the model with my colleague, Miguel Tola, to see if we can quantify the relationship between the the predictor variables and unemployment. For this we will need some extra data, and curtsy of Miguel, we can use loops to automate this data pulling from the APIs. After looping through tall the information we need this data will be joined into one unified table to study the regression analysis.
+
+```{r,api loops, message=FALSE}
+###FROM MIGUEL ####
+# Initialize data frame
+ny_male_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  male_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B03002_002",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(male_population) > 0) {
+    # Add year column
+    male_population$year <- year
+    
+    # Bind rows to data frame
+    ny_male_population_df <- bind_rows(ny_male_population_df, male_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+ny_female_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  female_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B03002_003",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(female_population) > 0) {
+    # Add year column
+    female_population$year <- year
+    
+    # Bind rows to data frame
+    ny_female_population_df <- bind_rows(ny_female_population_df, female_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+glimpse(ny_female_population_df)
+
+# Initialize data frame
+ny_white_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  white_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B02001_002",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(white_population) > 0) {
+    # Add year column
+    white_population$year <- year
+    
+    # Bind rows to data frame
+    ny_white_population_df <- bind_rows(ny_white_population_df, white_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+ny_black_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  black_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B02001_002",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(black_population) > 0) {
+    # Add year column
+    black_population$year <- year
+    
+    # Bind rows to data frame
+    ny_black_population_df <- bind_rows(ny_black_population_df, black_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+ny_hispanic_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  hispanic_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B03001_001",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(hispanic_population) > 0) {
+    # Add year column
+    hispanic_population$year <- year
+    
+    # Bind rows to data frame
+    ny_hispanic_population_df <- bind_rows(ny_hispanic_population_df, hispanic_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+ny_black_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  black_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B02001_002",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(black_population) > 0) {
+    # Add year column
+    black_population$year <- year
+    
+    # Bind rows to data frame
+    ny_black_population_df <- bind_rows(ny_black_population_df, black_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+ny_asian_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  asian_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B01001D_001",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(asian_population) > 0) {
+    # Add year column
+    asian_population$year <- year
+    
+    # Bind rows to data frame
+    ny_asian_population_df <- bind_rows(ny_asian_population_df, asian_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+less_than_hs_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  less_than_hs_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B06009_002",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(less_than_hs_population) > 0) {
+    # Add year column
+    less_than_hs_population$year <- year
+    
+    # Bind rows to data frame
+    less_than_hs_population_df <- bind_rows(less_than_hs_population_df, less_than_hs_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+hs_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  hs_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B06009_003",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(hs_population) > 0) {
+    # Add year column
+    hs_population$year <- year
+    
+    # Bind rows to data frame
+    hs_population_df <- bind_rows(hs_population_df, hs_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+#some college or associates degree
+# Initialize data frame
+some_college_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  some_college_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B06009_004",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(some_college_population) > 0) {
+    # Add year column
+    some_college_population$year <- year
+    
+    # Bind rows to data frame
+    some_college_population_df <- bind_rows(some_college_population_df, some_college_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+# Initialize data frame
+bachelors_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  bachelors_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B06009_005",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(bachelors_population) > 0) {
+    # Add year column
+    bachelors_population$year <- year
+    
+    # Bind rows to data frame
+    bachelors_population_df <- bind_rows(bachelors_population_df, bachelors_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+
+#Graduate or professional degree 
+# Initialize data frame
+
+graduate_population_df <- data.frame()
+
+# Loop through years
+for (year in 2005:2019) {
+  # Retrieve data
+  graduate_population <- get_acs(
+    geography = "state",
+    state = "NY",
+    variables = "B06009_005",
+    year = year,
+    survey = "acs1"
+  )
+  
+  # Check for errors
+  if (nrow(graduate_population) > 0) {
+    # Add year column
+    graduate_population$year <- year
+    
+    # Bind rows to data frame
+    graduate_population_df <- bind_rows(graduate_population_df, graduate_population)
+  } else {
+    print(paste("No data available for", year))
+  }
+}
+#Creating a table for the regression model
+library(fredr)
+fredr_set_key(read_lines("FRED_key.txt"))
+
+ny_unrate <- fredr(
+  series_id = "NYUR",
+  observation_start = as.Date("2005-01-01"),
+  observation_end = as.Date("2019-12-31"),
+  frequency = "a"  # monthly
+)
+
+ny_unrate$year <- as.integer(format(ny_unrate$date, "%Y"))
+
+
+regression_model_table <- ny_unrate |>
+  left_join(ny_female_population_df |>
+              select(female_pop = estimate, year), join_by(year == year)) |>
+  select(-date)
+
+
+
+regression_model_table <- ny_unrate |>
+  select(year, unemployment_rate = value) |>
+  left_join(ny_female_population_df |>
+              select(female_pop = estimate, year), 
+            by = "year") |>
+  left_join(ny_male_population_df |>
+              select(male_pop = estimate, year),
+            by = "year") |>
+  left_join(less_than_hs_population_df |>
+              select(less_than_hs_pop = estimate, year),
+            by = "year") |>
+  left_join(hs_population_df |>
+              select(hs_pop = estimate, year),
+            by = "year") |>
+  left_join(some_college_population_df |>
+              select(some_college_pop = estimate, year),
+            by = "year") |>
+  left_join(bachelors_population_df |>
+              select(bachelors_pop = estimate, year),
+            by = "year") |>
+  left_join(graduate_population_df |>
+              select(graduate_pop = estimate, year),
+            by = "year") |>
+  left_join(ny_asian_population_df |>
+              select(ny_asian_pop = estimate, year),
+            by = "year") |>
+  left_join(ny_white_population_df |>
+              select(ny_white_pop = estimate, year),
+            by = "year") |>
+  left_join(ny_black_population_df |>
+              select(ny_black_pop = estimate, year),
+            by = "year") |>
+  left_join(ny_hispanic_population_df |>
+              select(ny_hispanic_pop = estimate, year),
+            by = "year")
+
+```
+
+Now that we have our data we can begin some analysis and then building our model. This first model that we'll examine is built by Miguel.
+
+```{r, miguels model}
+miguels_model <- lm(unemployment_rate ~ 
+                        female_pop + 
+                        male_pop + 
+                        less_than_hs_pop + 
+                        hs_pop + 
+                        some_college_pop + 
+                        bachelors_pop + 
+                        
+                        ny_asian_pop + 
+                        ny_white_pop + 
+                        
+                        ny_hispanic_pop,
+                      data = regression_model_table)
+summary(miguels_model)
+```
+
+So as you can see the model as a whole does have some good number and is mostly likely able to predict fairly well, and has good explain-ability with an R-squared Adjusted of .88. However, in my case I would like to understand the underlying nature of demographic groups and see whether or not my previous findings hold up. For this I will need more statistical significance in the individual variables. To see why these variables have such high p-values lets start by visualizing some of the points.
+
+```{r, first regression plot}
+
+grad_point <-regression_model_table %>% 
+  select(-year) %>%
+  ggplot(aes(x = graduate_pop,y = unemployment_rate))+
+  geom_point(color  = "red")+
+  my_theme+
+  labs(y = "")
+  
+hs_point <- regression_model_table %>% 
+  select(-year) %>% 
+  ggplot(aes(x = hs_pop, y = unemployment_rate))+
+  geom_point(color = "green")+
+  my_theme+
+  labs(y = "")
+black_point <- regression_model_table %>% 
+  select(-year) %>% 
+  ggplot(aes(x = ny_black_pop,y = unemployment_rate))+
+  geom_point(color = "blue")+
+  my_theme+
+  labs(y = "")
+trend_point <- regression_model_table %>% 
+  ggplot(aes(x = year, y = unemployment_rate))+
+  geom_point(color = "darkred")+
+  my_theme+
+  labs(y = "")
+
+
+trend_grid<- plot_grid(grad_point,
+                           hs_point,
+                           black_point,
+                           trend_point,
+                           ncol = 2,nrow = 2)
+
+trend_analysis <- ggdraw() +
+  draw_label("Unemployment Rate", 
+             x = 0.04, 
+             y = 0.5, 
+             angle = 90, 
+             vjust = 1,
+             fontface = "bold") + 
+  draw_plot(trend_grid, x = 0.05, y = 0, width = 0.95, height = 1) 
+
+trend_analysis
+```
+
+As you can see the above the grid plot, there are similarities between all of the demographic groups that I have selected, and it almost exactly matches the the unemployment by year suggesting that time is significantly impacting the unemployment rate. This makes sense as we know that certain time periods had high unemployment rates due to the economic factors of the time period that are not in the scope of this analysis. For example after the crash in 2008 we can see a large spike in unemployment. This trend is seen across the variables explored above. The question becomes how can be be sure what demographic groups in this study are actually effect unemployment ?
+
+### Detrending Data
+
+After realizing that time was significantly impacting our results, particularly time periods of economic downturns, the first procedure we will look at is to simply remove those data points. Before doing so I will take a slightly different approach to my colleague Miguel and use proportions instead of total numbers.
+
+```{r,remove time}
+library(dplyr)
+### creating a proportions for the data instead of actual estimates
+
+regression_prop <- regression_model_table %>%
+  group_by(year) %>%
+  mutate(
+    total_pop_yr = rowSums(across(c(female_pop, male_pop, less_than_hs_pop, 
+                                    hs_pop, some_college_pop, bachelors_pop, 
+                                    graduate_pop, ny_asian_pop, ny_white_pop, 
+                                    ny_black_pop, ny_hispanic_pop))),
+    across(c(female_pop, male_pop, less_than_hs_pop, hs_pop, 
+             some_college_pop, bachelors_pop, graduate_pop, 
+             ny_asian_pop, ny_white_pop, ny_black_pop, 
+             ny_hispanic_pop), ~ .x / total_pop_yr, .names = "{.col}_prop")) %>%
+  select(year, unemployment_rate, ends_with("_prop")) %>%
+  ungroup()
+
+prop_df <- regression_prop %>% 
+  arrange(desc(unemployment_rate)) %>% 
+    slice(-(1:5))
+
+prop_df%>%
+  ggplot(aes(x = graduate_pop_prop,y =  unemployment_rate))+
+  geom_point()+
+  my_theme
+```
+
+Above we see this doesn't really remove the trend as hoped. In order to get the results desired a more formal detrending technique will be needed. For this we will first build a model with the trend component (time) and unemployment. After regressing the unemployment on time we will obtain the residuals and regress the new model on these squared errors. This is essentially modeling the variability in the model with time, and using the other predictors to then explain this variability.
+
+```{r,residual model}
+model <- lm(unemployment_rate ~ year, data = regression_prop)
+#using the residuals as a form of detrending 
+
+detrend_df <- regression_prop %>%
+  mutate(detrended_unemployment_rate = exp(residuals(model)))
+hs_detrend<-detrend_df %>% 
+  ggplot(aes(x = less_than_hs_pop_prop,y =  detrended_unemployment_rate))+
+  geom_point()+
+  labs(y = "", x = "Less Than High School Proportion")+
+   geom_smooth(method = "loess", se = TRUE, color = "blue")+
+  my_theme
+grad_detrend<-detrend_df %>% 
+  ggplot(aes(x = graduate_pop_prop,y =  detrended_unemployment_rate))+
+  geom_point()+
+  labs(y = "", x = "Graduate School Proportion")+
+   geom_smooth(method = "loess", se = TRUE, color = "blue")+
+  my_theme
+detrend_grid <- plot_grid(hs_detrend,grad_detrend, nrow = 2)
+
+detrend_analysis <- ggdraw() +
+  draw_label("Detrended Unemployment Rate", 
+             x = 0.04, 
+             y = 0.5, 
+             angle = 90, 
+             vjust = 1,
+             fontface = "bold") + 
+  draw_plot(detrend_grid, x = 0.05, y = 0, width = 0.95, height = 1) 
+detrend_analysis
+```
+
+It seems like the trend isn't completely gone but it seems make more sense, peaking at different levels instead one single a peak at virtually the same spot. Now lets see if we can get some statistically significant results using a regression model with this detrended data. Based on the plot a second order model might be more appropriate here. The regression equation used is as follows:
+
+$$
+\large\epsilon^2 = 
+\beta_0 + \beta_1 (\text{Less than HS Prop}) + \beta_2 (\text{Less than HS Prop})^2 + \beta_3 (\text{Grad Prop}) + \beta_4 (\text{Grad Prop})^2 + \epsilon'
+$$
+
+Regression Output:
+
+```{r, summary model}
+detrend_model <- lm(detrended_unemployment_rate ~ 
+             less_than_hs_pop_prop + 
+             I(less_than_hs_pop_prop^2) + 
+             graduate_pop_prop+
+             I(graduate_pop_prop^2),
+             data = detrend_df)
+summary(detrend_model)
+```
+
+Lets see what this looks like in a regression plane.
+
+```{r,3d plane, message=FALSE}
+
+less_than_hs_pop_prop <- seq(0, 1, length.out = 100)
+graduate_pop_prop <- seq(0, 1, length.out = 100)
+
+
+df <- expand.grid(less_than_hs_pop_prop = less_than_hs_pop_prop,
+                    graduate_pop_prop = graduate_pop_prop)
+
+df <- df %>% mutate(pred_residual = predict(detrend_model, newdata= df))
+
+library(plotly)
+axx <- list(
+  title = "Grad"
+)
+
+axy <- list(
+  title = "Less-HS"
+)
+
+axz <- list(
+  title = "e^2"
+)
+
+plot_ly(df, x = ~less_than_hs_pop_prop, 
+        y = ~graduate_pop_prop, 
+        z = ~pred_residual,
+        type = 'scatter3d') %>% 
+  layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
+
+
+```
+
+### Conclusion
+
+In conclusion, the groups most affected by unemployment are those with lower levels of education. While it may initially appear that certain racial groups, such as the Black demographic, are disproportionately impacted due to their higher unemployment rates, a deeper analysis reveals that education is a confounding factor. The racial groups with the highest unemployment rates also tend to have lower levels of education, which contributes significantly to their unemployment status. We see that education is also a statistically significant predictor of unemployment, reinforcing the idea that individuals with lower educational attainment are the most vulnerable to unemployment.

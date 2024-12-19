@@ -1,3 +1,6 @@
 Alphavantage_key.txt
 FRED_key.txt
 census_key.txt
+
+/.quarto/
+.Rproj.user
