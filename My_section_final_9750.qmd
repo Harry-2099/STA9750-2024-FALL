@@ -881,11 +881,11 @@ df <- expand.grid(less_than_hs_pop_prop = less_than_hs_pop_prop,
 df <- df %>% mutate(pred_residual = predict(detrend_model, newdata= df))
 
 library(plotly)
-axx <- list(
+axy <- list(
   title = "Grad"
 )
 
-axy <- list(
+axx <- list(
   title = "Less-HS"
 )
 
