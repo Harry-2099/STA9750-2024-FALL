@@ -1,5 +1,5 @@
 ---
-title: "Groups Most Effected by Unemployment"
+title: "Groups Most Affected by Unemployment"
 author: "Harry Sohal"
 editor: visual
 code-fold: true
@@ -160,8 +160,10 @@ The Census has a vast amount of information across many different demographic gr
 #load the variables 
 acs_vars <- load_variables(2022, "acs5", cache = TRUE)
 #filter for demographics
-acs_vars %>% 
-  filter(grepl("C15002",name) & grepl(".*Bachelor.*", label, ignore.case = TRUE)) %>%   DT::datatable()
+acs_dt <-acs_vars %>% 
+  filter(grepl("C15002",name) & grepl(".*Bachelor.*", label, ignore.case = TRUE))%>%
+  DT::datatable()
+acs_dt
 ```
 
 Now this allows us to see all the variables we are interested in filtering for the first part of the education code and the filtering further for only bachelors degrees. Now we can get the data for the groups we are interested in. Here I will look at the number of men in each race with at least a bachelors degree. After obtaining that we can we filter down the for the boroughs, and make a proportion of at least a bachelors degree using the races respective total population.
@@ -242,11 +244,11 @@ bach_edu_pop %>%
   labs(y = "Proportion")
 ```
 
-You can see that the black and then Latino group is significantly lower the than the White group. This aligns well with the unemployment by race as Black and Latino were the top 2 highest unemployment see above, however black is slightly higher than Latino which was unexpected. Lets see how this comparison looks geographically.
+You can see that the black and then Latino group is significantly lower the than the White group. This aligns well with the unemployment by race as Black and Latino were the top 2 highest unemployment see above, however black is slightly higher than Latino which was unexpected. Let's see how this comparison looks geographically.
 
 ### Geographic Comparison of Race and Education
 
-Similarly from the last section we need to use the census api to get the data. In this section we will get the data for Less than high school graduates and also get the total population data for that we can create a proportion. This way when we create a plot it will not be skewed by the larger populations likely having larger number of high school drop outs.
+Similarly from the last section we need to use the census api to get the data. In this section we will get the data for Less than High School Graduates and also get the total population data for that we can create a proportion. This way when we create a plot it will not be skewed by the larger populations likely having larger number of high school drop outs.
 
 ```{r,less hs map,message=FALSE,warning=FALSE}
 year = "2023"
@@ -331,7 +333,7 @@ We can see that there are is a good amount of overlap here with the black popula
 
 ### Regression Analysis
 
-In this section I'll aim to build a model, with my build off the model with my colleague, Miguel Tola, to see if we can quantify the relationship between the the predictor variables and unemployment. For this we will need some extra data, and curtsy of Miguel, we can use loops to automate this data pulling from the APIs. After looping through tall the information we need this data will be joined into one unified table to study the regression analysis.
+In this section I'll aim to build a model, with my build off the model with my colleague, Miguel Tola, to see if we can quantify the relationship between the the predictor variables and unemployment. For this we will need some extra data, and curtsy of Miguel, we can use loops to automate this data pulling from the API's. After looping through tall the information we need this data will be joined into one unified table to study the regression analysis.
 
 ```{r,api loops, message=FALSE}
 ###FROM MIGUEL ####
@@ -729,7 +731,7 @@ miguels_model <- lm(unemployment_rate ~
 summary(miguels_model)
 ```
 
-So as you can see the model as a whole does have some good number and is mostly likely able to predict fairly well, and has good explain-ability with an R-squared Adjusted of .88. However, in my case I would like to understand the underlying nature of demographic groups and see whether or not my previous findings hold up. For this I will need more statistical significance in the individual variables. To see why these variables have such high p-values lets start by visualizing some of the points.
+So as you can see the model as a whole does have some good numbers, is mostly likely able to predict fairly well, and has good explain-ability with an R-squared Adjusted of .88. However, in my case I would like to understand the underlying nature of demographic groups and see whether or not my previous findings hold up. For this I will need more statistical significance in the individual variables. To see why these variables have such high p-values lets start by visualizing some of the points.
 
 ```{r, first regression plot}
 
@@ -777,7 +779,7 @@ trend_analysis <- ggdraw() +
 trend_analysis
 ```
 
-As you can see the above the grid plot, there are similarities between all of the demographic groups that I have selected, and it almost exactly matches the the unemployment by year suggesting that time is significantly impacting the unemployment rate. This makes sense as we know that certain time periods had high unemployment rates due to the economic factors of the time period that are not in the scope of this analysis. For example after the crash in 2008 we can see a large spike in unemployment. This trend is seen across the variables explored above. The question becomes how can be be sure what demographic groups in this study are actually effect unemployment ?
+As you can see the above the grid plot, there are similarities between all of the demographic groups that I have selected, and it almost exactly matches the the unemployment by year suggesting that time is significantly impacting the unemployment rate. This makes sense as we know that certain time periods had high unemployment rates due to the economic factors of the time period that are not in the scope of this analysis. For example after the crash in 2008 we can see a large spike in unemployment. This trend is seen across the variables explored above. The question becomes how can be be sure what demographic groups in this study are actually affect unemployment?
 
 ### Detrending Data
 
@@ -844,14 +846,14 @@ detrend_analysis <- ggdraw() +
 detrend_analysis
 ```
 
-It seems like the trend isn't completely gone but it seems make more sense, peaking at different levels instead one single a peak at virtually the same spot. Now lets see if we can get some statistically significant results using a regression model with this detrended data. Based on the plot a second order model might be more appropriate here. The regression equation used is as follows:
+It seems like the trend isn't completely gone but it seems make more sense, peaking at different levels instead one single a peak at virtually the same spot. Now lets see if we can get some statistically significant results using a regression model with this detrended data. Based on the plot a second order model might be more appropriate here. The regression equation used is as follows where the first epsilon represents the error from the initial model:
 
 $$
-\large\epsilon^2 = 
-\beta_0 + \beta_1 (\text{Less than HS Prop}) + \beta_2 (\text{Less than HS Prop})^2 + \beta_3 (\text{Grad Prop}) + \beta_4 (\text{Grad Prop})^2 + \epsilon'
+\Large\epsilon^2 = 
+\Large\beta_0 + \beta_1 \small(\text{Less than HS Prop}) + \Large\beta_2 \small(\text{Less than HS Prop})^2 + \Large\beta_3 \small(\text{Grad Prop}) + \Large\beta_4 \small(\text{Grad Prop})^2 + \Large\epsilon'
 $$
 
-Regression Output:
+**Regression Output:**
 
 ```{r, summary model}
 detrend_model <- lm(detrended_unemployment_rate ~ 
@@ -863,7 +865,9 @@ detrend_model <- lm(detrended_unemployment_rate ~
 summary(detrend_model)
 ```
 
-Lets see what this looks like in a regression plane.
+**Detrended Model Visualized:**
+
+Below is the three dimensional plane representing the model above. It shows the two education variables at various points and its corresponding predicted error. This prediction indicates how much the unemployment would change, and in which direction on top of the trend component in the separate model. This has some points that are unrealistic of course, like an Graduate level education proportion of 1 or of 0. These points are outside the scope of the fitted model thus don't provide accurate actual predictions but the regression surface still functions as a great visual of the nature of education and unemployment.
 
 ```{r,3d plane, message=FALSE}
 
@@ -889,13 +893,13 @@ axz <- list(
   title = "e^2"
 )
 
-plot_ly(df, x = ~less_than_hs_pop_prop, 
+regression_surface <- plot_ly(df, x = ~less_than_hs_pop_prop, 
         y = ~graduate_pop_prop, 
         z = ~pred_residual,
         type = 'scatter3d') %>% 
   layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
 
-
+regression_surface
 ```
 
 ### Conclusion
