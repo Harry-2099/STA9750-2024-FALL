@@ -871,8 +871,8 @@ Below is the three dimensional plane representing the model above. It shows the 
 
 ```{r,3d plane, message=FALSE}
 
-less_than_hs_pop_prop <- seq(0, 1, length.out = 100)
-graduate_pop_prop <- seq(0, 1, length.out = 100)
+less_than_hs_pop_prop <- seq(0, 1,length = 50)
+graduate_pop_prop <- seq(0, 1,length = 50)
 
 
 df <- expand.grid(less_than_hs_pop_prop = less_than_hs_pop_prop,
