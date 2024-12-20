@@ -896,7 +896,8 @@ axz <- list(
 regression_surface <- plot_ly(df, x = ~less_than_hs_pop_prop, 
         y = ~graduate_pop_prop, 
         z = ~pred_residual,
-        type = 'scatter3d') %>% 
+        type = 'scatter3d',
+        marker = list(color = df$pred_residual)) %>% 
   layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
 
 regression_surface
